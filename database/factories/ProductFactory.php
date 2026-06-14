@@ -22,7 +22,7 @@ class ProductFactory extends Factory
             'description' => $this->faker->sentence(),
             'price' => $this->faker->numberBetween(25000, 250000),
             'stock' => $this->faker->numberBetween(5, 100),
-            'image_url' => null,
+            'image_url' => 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=900&q=80',
             'is_active' => true,
         ];
     }

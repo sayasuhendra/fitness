@@ -16,7 +16,7 @@ class ProductResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'price' => (float) $this->price,
-            'image_url' => $this->image_url ?? 'https://placehold.co/800x600?text='.urlencode($this->name),
+            'image_url' => (string) $this->image_url,
             'category' => $this->category->name,
             'stock' => $this->stock,
         ];
