@@ -3,19 +3,13 @@
 set -Eeuo pipefail
 
 DOMAIN="${DOMAIN:-fitness.dbaik.com}"
-APP_NAME="${APP_NAME:-Fitness Akhwat}"
 APP_DIR="${APP_DIR:-/var/www/fitness}"
-REPO_URL="${REPO_URL:-}"
-REPO_BRANCH="${REPO_BRANCH:-main}"
 WEB_USER="${WEB_USER:-www-data}"
-PHP_VERSION="${PHP_VERSION:-8.4}"
-DB_NAME="${DB_NAME:-fitness}"
-DB_USER="${DB_USER:-fitness}"
-DB_PASSWORD="${DB_PASSWORD:-$(openssl rand -base64 32 | tr -d '/+=' | cut -c1-24)}"
-APP_ENV="${APP_ENV:-production}"
-APP_DEBUG="${APP_DEBUG:-false}"
+REPO_BRANCH="${REPO_BRANCH:-main}"
 RUN_SEEDERS="${RUN_SEEDERS:-false}"
-FORCE_ENV="${FORCE_ENV:-false}"
+SKIP_GIT_PULL="${SKIP_GIT_PULL:-false}"
+NPM_CACHE="${NPM_CACHE:-${APP_DIR}/.npm-cache}"
+COMPOSER_HOME="${COMPOSER_HOME:-${APP_DIR}/.composer}"
 
 log() {
     printf "\n\033[1;32m==>\033[0m %s\n" "$1"
@@ -25,192 +19,90 @@ warn() {
     printf "\n\033[1;33mWARN:\033[0m %s\n" "$1"
 }
 
+fail() {
+    printf "\n\033[1;31mERROR:\033[0m %s\n" "$1"
+    exit 1
+}
+
 need_root() {
     if [[ "${EUID}" -ne 0 ]]; then
-        echo "Please run with sudo/root: sudo bash fitness-setup.sh"
-        exit 1
+        fail "Please run with sudo/root: sudo bash fitness-setup.sh"
     fi
+}
+
+assert_ready() {
+    [[ -d "${APP_DIR}" ]] || fail "APP_DIR does not exist: ${APP_DIR}"
+    [[ -d "${APP_DIR}/.git" ]] || fail "${APP_DIR} is not a git repository. Clone it first."
+    [[ -f "${APP_DIR}/artisan" ]] || fail "Laravel artisan file not found in ${APP_DIR}"
+    [[ -f "${APP_DIR}/.env" ]] || fail ".env not found in ${APP_DIR}. Create it before deploy."
+
+    command -v git >/dev/null 2>&1 || fail "git is not installed"
+    command -v composer >/dev/null 2>&1 || fail "composer is not installed"
+    command -v npm >/dev/null 2>&1 || fail "npm is not installed"
+    command -v php >/dev/null 2>&1 || fail "php is not installed"
 }
 
 run_as_web() {
-    sudo -u "${WEB_USER}" bash -lc "cd '${APP_DIR}' && $*"
+    sudo -u "${WEB_USER}" \
+        env HOME="${APP_DIR}" COMPOSER_HOME="${COMPOSER_HOME}" NPM_CONFIG_CACHE="${NPM_CACHE}" \
+        bash -lc "cd '${APP_DIR}' && $*"
 }
 
-detect_php_fpm_service() {
-    if systemctl list-unit-files "php${PHP_VERSION}-fpm.service" >/dev/null 2>&1; then
-        echo "php${PHP_VERSION}-fpm"
+pull_latest_code() {
+    if [[ "${SKIP_GIT_PULL}" == "true" ]]; then
+        warn "Skipping git pull because SKIP_GIT_PULL=true"
         return
     fi
 
-    local service
-    service="$(systemctl list-unit-files 'php*-fpm.service' --no-legend 2>/dev/null | awk '{print $1}' | sed 's/.service$//' | sort -V | tail -n1 || true)"
-    if [[ -n "${service}" ]]; then
-        echo "${service}"
-        return
-    fi
-
-    echo "php${PHP_VERSION}-fpm"
+    log "Pulling latest code from ${REPO_BRANCH}"
+    git -C "${APP_DIR}" fetch --all --prune
+    git -C "${APP_DIR}" checkout "${REPO_BRANCH}"
+    git -C "${APP_DIR}" pull --ff-only origin "${REPO_BRANCH}"
 }
 
-install_packages() {
-    log "Installing OS packages"
+prepare_permissions() {
+    log "Preparing writable directories"
+    mkdir -p \
+        "${APP_DIR}/storage" \
+        "${APP_DIR}/bootstrap/cache" \
+        "${COMPOSER_HOME}" \
+        "${NPM_CACHE}"
 
-    export DEBIAN_FRONTEND=noninteractive
-    apt-get update
-    apt-get install -y \
-        ca-certificates \
-        curl \
-        gnupg \
-        unzip \
-        git \
-        acl \
-        supervisor \
-        postgresql \
-        postgresql-contrib \
-        caddy \
-        "php${PHP_VERSION}-fpm" \
-        "php${PHP_VERSION}-cli" \
-        "php${PHP_VERSION}-pgsql" \
-        "php${PHP_VERSION}-mbstring" \
-        "php${PHP_VERSION}-xml" \
-        "php${PHP_VERSION}-curl" \
-        "php${PHP_VERSION}-zip" \
-        "php${PHP_VERSION}-bcmath" \
-        "php${PHP_VERSION}-intl" \
-        "php${PHP_VERSION}-gd" \
-        "php${PHP_VERSION}-redis"
+    chown -R "${WEB_USER}:${WEB_USER}" \
+        "${APP_DIR}/storage" \
+        "${APP_DIR}/bootstrap/cache" \
+        "${COMPOSER_HOME}" \
+        "${NPM_CACHE}"
 
-    if ! command -v composer >/dev/null 2>&1; then
-        log "Installing Composer"
-        curl -fsSL https://getcomposer.org/installer -o /tmp/composer-setup.php
-        php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer
-        rm -f /tmp/composer-setup.php
-    fi
-
-    if ! command -v node >/dev/null 2>&1; then
-        log "Installing Node.js 22"
-        curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
-        apt-get install -y nodejs
-    fi
+    chmod -R ug+rwX "${APP_DIR}/storage" "${APP_DIR}/bootstrap/cache"
 }
 
-prepare_code() {
-    log "Preparing application code in ${APP_DIR}"
-
-    mkdir -p "${APP_DIR}"
-
-    if [[ -n "${REPO_URL}" ]]; then
-        if [[ -d "${APP_DIR}/.git" ]]; then
-            git -C "${APP_DIR}" fetch --all --prune
-            git -C "${APP_DIR}" checkout "${REPO_BRANCH}"
-            git -C "${APP_DIR}" pull --ff-only origin "${REPO_BRANCH}"
-        else
-            rm -rf "${APP_DIR:?}/"*
-            git clone --branch "${REPO_BRANCH}" "${REPO_URL}" "${APP_DIR}"
-        fi
-    else
-        warn "REPO_URL is empty. Using files already present in ${APP_DIR}."
-        warn "To deploy from Git: REPO_URL=git@github.com:org/repo.git sudo -E bash fitness-setup.sh"
-    fi
-
-    chown -R "${WEB_USER}:${WEB_USER}" "${APP_DIR}"
-}
-
-configure_postgres() {
-    log "Configuring PostgreSQL database ${DB_NAME}"
-
-    systemctl enable --now postgresql
-
-    sudo -u postgres psql -v ON_ERROR_STOP=1 <<SQL
-DO \$\$
-BEGIN
-    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = '${DB_USER}') THEN
-        CREATE ROLE ${DB_USER} LOGIN PASSWORD '${DB_PASSWORD}';
-    ELSE
-        ALTER ROLE ${DB_USER} WITH LOGIN PASSWORD '${DB_PASSWORD}';
-    END IF;
-END
-\$\$;
-
-SELECT 'CREATE DATABASE ${DB_NAME} OWNER ${DB_USER}'
-WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '${DB_NAME}')\\gexec
-GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};
-SQL
-}
-
-write_env() {
-    log "Writing Laravel environment"
-
-    if [[ -f "${APP_DIR}/.env" && "${FORCE_ENV}" != "true" ]]; then
-        warn "${APP_DIR}/.env already exists. Keeping it. Set FORCE_ENV=true to regenerate."
-        return
-    fi
-
-    local app_key
-    app_key="$(php -r 'echo "base64:".base64_encode(random_bytes(32));')"
-
-    cat > "${APP_DIR}/.env" <<ENV
-APP_NAME="${APP_NAME}"
-APP_ENV=${APP_ENV}
-APP_KEY=${app_key}
-APP_DEBUG=${APP_DEBUG}
-APP_URL=https://${DOMAIN}
-
-APP_LOCALE=en
-APP_FALLBACK_LOCALE=en
-APP_FAKER_LOCALE=en_US
-
-LOG_CHANNEL=stack
-LOG_STACK=single
-LOG_LEVEL=info
-
-DB_CONNECTION=pgsql
-DB_HOST=127.0.0.1
-DB_PORT=5432
-DB_DATABASE=${DB_NAME}
-DB_USERNAME=${DB_USER}
-DB_PASSWORD=${DB_PASSWORD}
-
-SESSION_DRIVER=database
-SESSION_LIFETIME=120
-SESSION_ENCRYPT=true
-SESSION_PATH=/
-SESSION_DOMAIN=.${DOMAIN}
-
-BROADCAST_CONNECTION=log
-FILESYSTEM_DISK=public
-QUEUE_CONNECTION=database
-CACHE_STORE=database
-
-MAIL_MAILER=log
-MAIL_FROM_ADDRESS="noreply@${DOMAIN}"
-MAIL_FROM_NAME="\${APP_NAME}"
-
-SANCTUM_STATEFUL_DOMAINS=${DOMAIN}
-VITE_APP_NAME="\${APP_NAME}"
-ENV
-
-    chown "${WEB_USER}:${WEB_USER}" "${APP_DIR}/.env"
-    chmod 640 "${APP_DIR}/.env"
-}
-
-build_app() {
+install_backend_dependencies() {
     log "Installing PHP dependencies"
     run_as_web "composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader"
+}
 
+build_frontend_assets() {
     log "Installing Node dependencies and building frontend assets"
+
+    rm -rf "${APP_DIR}/node_modules"
+    mkdir -p "${NPM_CACHE}"
+    chown -R "${WEB_USER}:${WEB_USER}" "${NPM_CACHE}"
+
     if [[ -f "${APP_DIR}/package-lock.json" ]]; then
-        run_as_web "npm ci"
+        run_as_web "npm ci --no-audit --no-fund --cache '${NPM_CACHE}'"
     else
-        run_as_web "npm install"
+        run_as_web "npm install --no-audit --no-fund --cache '${NPM_CACHE}'"
     fi
+
     run_as_web "npm run build"
+}
 
-    log "Preparing Laravel storage and database"
-    mkdir -p "${APP_DIR}/storage" "${APP_DIR}/bootstrap/cache"
-    chown -R "${WEB_USER}:${WEB_USER}" "${APP_DIR}/storage" "${APP_DIR}/bootstrap/cache"
-    chmod -R ug+rwX "${APP_DIR}/storage" "${APP_DIR}/bootstrap/cache"
+run_laravel_deploy_steps() {
+    log "Running Laravel deploy steps"
 
+    run_as_web "php artisan down --render='errors::503' || true"
+    run_as_web "php artisan optimize:clear"
     run_as_web "php artisan storage:link || true"
     run_as_web "php artisan migrate --force"
 
@@ -219,128 +111,60 @@ build_app() {
     fi
 
     run_as_web "php artisan filament:assets"
-    run_as_web "php artisan optimize:clear"
     run_as_web "php artisan config:cache"
     run_as_web "php artisan route:cache"
     run_as_web "php artisan view:cache"
     run_as_web "php artisan filament:cache-components"
+    run_as_web "php artisan up"
 }
 
-configure_caddy() {
-    log "Configuring Caddy for ${DOMAIN}"
+reload_services() {
+    log "Reloading application services"
 
-    local php_fpm_service
-    local php_fpm_socket
-    php_fpm_service="$(detect_php_fpm_service)"
-    php_fpm_socket="/run/php/${php_fpm_service}.sock"
+    if systemctl list-unit-files caddy.service >/dev/null 2>&1; then
+        caddy validate --config /etc/caddy/Caddyfile
+        systemctl reload caddy
+    else
+        warn "Caddy service not found. Skipping Caddy reload."
+    fi
 
-    cat > "/etc/caddy/Caddyfile" <<CADDY
-${DOMAIN} {
-    root * ${APP_DIR}/public
-    encode zstd gzip
-    php_fastcgi unix/${php_fpm_socket}
-    file_server
+    if systemctl list-unit-files fitness-queue.service >/dev/null 2>&1; then
+        systemctl restart fitness-queue.service
+    else
+        warn "fitness-queue.service not found. Skipping queue restart."
+    fi
 
-    header {
-        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-        X-Content-Type-Options "nosniff"
-        X-Frame-Options "SAMEORIGIN"
-        Referrer-Policy "strict-origin-when-cross-origin"
-        Permissions-Policy "camera=(), microphone=(), geolocation=()"
-    }
-
-    @hidden {
-        path /.env
-        path /.git/*
-        path /composer.*
-        path /package*.json
-    }
-    respond @hidden 404
-}
-CADDY
-
-    caddy validate --config /etc/caddy/Caddyfile
-    systemctl enable --now "${php_fpm_service}"
-    systemctl enable --now caddy
-    systemctl reload caddy
-}
-
-configure_workers() {
-    log "Configuring Laravel queue worker and scheduler"
-
-    cat > /etc/systemd/system/fitness-queue.service <<UNIT
-[Unit]
-Description=Fitness Akhwat Laravel Queue Worker
-After=network.target postgresql.service
-
-[Service]
-User=${WEB_USER}
-Group=${WEB_USER}
-Restart=always
-WorkingDirectory=${APP_DIR}
-ExecStart=/usr/bin/php ${APP_DIR}/artisan queue:work --sleep=3 --tries=3 --timeout=90
-
-[Install]
-WantedBy=multi-user.target
-UNIT
-
-    cat > /etc/systemd/system/fitness-scheduler.service <<UNIT
-[Unit]
-Description=Fitness Akhwat Laravel Scheduler
-
-[Service]
-User=${WEB_USER}
-Group=${WEB_USER}
-WorkingDirectory=${APP_DIR}
-ExecStart=/usr/bin/php ${APP_DIR}/artisan schedule:run
-UNIT
-
-    cat > /etc/systemd/system/fitness-scheduler.timer <<UNIT
-[Unit]
-Description=Run Fitness Akhwat Laravel Scheduler every minute
-
-[Timer]
-OnCalendar=*-*-* *:*:00
-Persistent=true
-
-[Install]
-WantedBy=timers.target
-UNIT
-
-    systemctl daemon-reload
-    systemctl enable --now fitness-queue.service
-    systemctl enable --now fitness-scheduler.timer
+    if systemctl list-unit-files fitness-scheduler.timer >/dev/null 2>&1; then
+        systemctl restart fitness-scheduler.timer
+    else
+        warn "fitness-scheduler.timer not found. Skipping scheduler timer restart."
+    fi
 }
 
 print_summary() {
-    log "Deployment complete"
+    log "Deploy complete"
     cat <<SUMMARY
-Domain:        https://${DOMAIN}
-App dir:       ${APP_DIR}
-Database:      ${DB_NAME}
-DB user:       ${DB_USER}
-DB password:   ${DB_PASSWORD}
+Domain:  https://${DOMAIN}
+App dir: ${APP_DIR}
+Branch:  ${REPO_BRANCH}
 
-Useful commands:
+Useful checks:
   sudo systemctl status caddy
   sudo systemctl status fitness-queue
   sudo systemctl status fitness-scheduler.timer
-  sudo -u ${WEB_USER} php ${APP_DIR}/artisan optimize:clear
-
-Admin seed login, if RUN_SEEDERS=true:
-  admin@fitnessakhwat.test / password
+  sudo -u ${WEB_USER} php ${APP_DIR}/artisan about
 SUMMARY
 }
 
 main() {
     need_root
-    install_packages
-    prepare_code
-    configure_postgres
-    write_env
-    build_app
-    configure_caddy
-    configure_workers
+    assert_ready
+    pull_latest_code
+    prepare_permissions
+    install_backend_dependencies
+    build_frontend_assets
+    run_laravel_deploy_steps
+    reload_services
     print_summary
 }
 
