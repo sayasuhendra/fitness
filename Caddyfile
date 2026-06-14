@@ -1,0 +1,13 @@
+api.fitnessakhwat.com {
+	root * /var/www/fitness/public
+	encode zstd gzip
+	php_fastcgi unix//run/php/php8.4-fpm.sock
+	file_server
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
+}

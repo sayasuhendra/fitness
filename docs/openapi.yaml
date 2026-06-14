@@ -1,0 +1,105 @@
+openapi: 3.1.0
+info:
+  title: Fitness Akhwat API
+  version: 1.0.0
+servers:
+  - url: https://api.fitnessakhwat.com/api/v1
+paths:
+  /auth/register:
+    post:
+      summary: Register member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required: [name, email, phone, password, password_confirmation]
+              properties:
+                name: { type: string }
+                email: { type: string, format: email }
+                phone: { type: string }
+                password: { type: string, minLength: 8 }
+                password_confirmation: { type: string }
+      responses:
+        "201": { description: Member registered }
+  /auth/login:
+    post:
+      summary: Login member
+      responses:
+        "200": { description: Sanctum token issued }
+  /memberships:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: List active membership packages
+      responses:
+        "200": { description: Packages returned }
+  /memberships/purchase:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Purchase and activate membership after successful Midtrans callback
+      responses:
+        "201": { description: Membership activated }
+  /memberships/history:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Member membership history
+      responses:
+        "200": { description: History returned }
+  /classes:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: List class schedules with trainer and capacity information
+      parameters:
+        - in: query
+          name: date
+          schema: { type: string, format: date }
+      responses:
+        "200": { description: Classes returned }
+  /classes/book:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Book a class if active membership and capacity are available
+      responses:
+        "201": { description: Booking confirmed }
+        "422": { description: No active membership or class full }
+  /classes/cancel:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Cancel a member booking
+      responses:
+        "200": { description: Booking cancelled }
+  /attendance/qr-code:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Generate temporary QR payload for member check-in
+      responses:
+        "200": { description: QR payload returned }
+  /attendance/history:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Member attendance history
+      responses:
+        "200": { description: Attendance history returned }
+  /products:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: List products by category and search query
+      responses:
+        "200": { description: Products returned }
+  /orders:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Member order history
+      responses:
+        "200": { description: Orders returned }
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Checkout cart and reduce stock after payment success
+      responses:
+        "201": { description: Order completed }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum
