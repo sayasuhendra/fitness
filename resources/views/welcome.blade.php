@@ -3,9 +3,9 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="Fitness Akhwat adalah platform manajemen fitness khusus akhwat untuk membership, booking kelas, absensi QR, checkout toko, pembayaran, dan operasional admin.">
+        <meta name="description" content="Fitness Akhwat membantu owner dan admin mengelola member, jadwal kelas, kehadiran, toko, pembayaran, dan laporan operasional dengan lebih rapi.">
 
-        <title>Platform Manajemen Fitness Akhwat</title>
+        <title>Fitness Akhwat</title>
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
@@ -21,13 +21,13 @@
                     </a>
 
                     <div class="hidden items-center gap-8 text-sm font-medium text-white/85 md:flex">
-                        <a href="#platform" class="transition hover:text-white">Platform</a>
-                        <a href="#features" class="transition hover:text-white">Fitur</a>
-                        <a href="#operations" class="transition hover:text-white">Operasional</a>
+                        <a href="#manfaat" class="transition hover:text-white">Manfaat</a>
+                        <a href="#pengelolaan" class="transition hover:text-white">Pengelolaan</a>
+                        <a href="#owner" class="transition hover:text-white">Untuk Owner</a>
                     </div>
 
                     <a href="{{ url('/admin') }}" class="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-emerald-950 shadow-sm transition hover:bg-emerald-50">
-                        Panel Admin
+                        Masuk Admin
                     </a>
                 </nav>
             </header>
@@ -36,107 +36,103 @@
                 <section class="relative min-h-screen overflow-hidden">
                     <img
                         src="{{ asset('images/landing/akhwat-studio.png') }}"
-                        alt="Studio fitness khusus akhwat yang modern dan kosong dengan perlengkapan latihan"
+                        alt="Studio fitness khusus akhwat yang modern dan nyaman"
                         class="absolute inset-0 h-full w-full object-cover"
                     >
-                    <div class="absolute inset-0 bg-gradient-to-r from-zinc-950/90 via-emerald-950/68 to-zinc-950/20"></div>
-                    <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/82 via-transparent to-zinc-950/35"></div>
+                    <div class="absolute inset-0 bg-gradient-to-r from-zinc-950/92 via-emerald-950/70 to-zinc-950/20"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/84 via-transparent to-zinc-950/35"></div>
 
                     <div class="relative z-10 mx-auto flex min-h-screen max-w-7xl items-center px-5 pb-20 pt-32 sm:px-8">
                         <div class="max-w-3xl text-white">
                             <p class="mb-5 inline-flex rounded-lg border border-white/20 bg-white/10 px-3 py-1 text-sm font-medium text-emerald-50 backdrop-blur">
-                                Manajemen fitness khusus akhwat, dibuat untuk operasional nyata
+                                Ruang kerja yang lebih rapi untuk tim Fitness Akhwat
                             </p>
-                            <h1 class="max-w-2xl text-5xl font-bold leading-tight sm:text-6xl lg:text-7xl">
-                                Fitness Akhwat
+                            <h1 class="max-w-3xl text-5xl font-bold leading-tight sm:text-6xl lg:text-7xl">
+                                Kelola studio dengan tenang, rapi, dan percaya diri.
                             </h1>
                             <p class="mt-6 max-w-2xl text-lg leading-8 text-zinc-100 sm:text-xl">
-                                Platform siap produksi untuk membership, booking kelas, absensi QR, checkout produk, pembayaran Midtrans, aplikasi mobile member, dan administrasi berbasis Filament.
+                                Satu tempat untuk membantu owner dan admin mengatur member, jadwal kelas, kehadiran, penjualan produk, pembayaran, dan ringkasan usaha tanpa ribet.
                             </p>
 
                             <div class="mt-9 flex flex-col gap-3 sm:flex-row">
                                 <a href="{{ url('/admin') }}" class="inline-flex items-center justify-center rounded-lg bg-emerald-400 px-6 py-3 text-sm font-bold text-emerald-950 shadow-lg shadow-emerald-950/30 transition hover:bg-emerald-300">
-                                    Buka Admin
+                                    Masuk ke Admin
                                 </a>
-                                <a href="#features" class="inline-flex items-center justify-center rounded-lg border border-white/25 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20">
-                                    Lihat Fitur
+                                <a href="#manfaat" class="inline-flex items-center justify-center rounded-lg border border-white/25 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20">
+                                    Lihat Manfaat
                                 </a>
                             </div>
 
-                            <dl class="mt-12 grid max-w-2xl grid-cols-3 gap-3">
+                            <div class="mt-12 grid max-w-3xl gap-3 sm:grid-cols-3">
                                 <div class="rounded-lg border border-white/15 bg-white/10 p-4 backdrop-blur">
-                                    <dt class="text-xs uppercase tracking-[0.16em] text-emerald-100">Modul Utama</dt>
-                                    <dd class="mt-2 text-3xl font-bold">8</dd>
+                                    <p class="text-sm font-semibold text-emerald-100">Operasional lebih rapi</p>
+                                    <p class="mt-2 text-sm leading-6 text-white/80">Data penting tersimpan dalam alur yang mudah dicari.</p>
                                 </div>
                                 <div class="rounded-lg border border-white/15 bg-white/10 p-4 backdrop-blur">
-                                    <dt class="text-xs uppercase tracking-[0.16em] text-emerald-100">API Utama</dt>
-                                    <dd class="mt-2 text-3xl font-bold">v1</dd>
+                                    <p class="text-sm font-semibold text-emerald-100">Tim lebih mudah bekerja</p>
+                                    <p class="mt-2 text-sm leading-6 text-white/80">Admin bisa melayani member dengan langkah yang jelas.</p>
                                 </div>
                                 <div class="rounded-lg border border-white/15 bg-white/10 p-4 backdrop-blur">
-                                    <dt class="text-xs uppercase tracking-[0.16em] text-emerald-100">Admin</dt>
-                                    <dd class="mt-2 text-3xl font-bold">Aktif</dd>
+                                    <p class="text-sm font-semibold text-emerald-100">Owner lebih mudah memantau</p>
+                                    <p class="mt-2 text-sm leading-6 text-white/80">Ringkasan usaha tersaji tanpa membuka data sensitif di halaman depan.</p>
                                 </div>
-                            </dl>
+                            </div>
                         </div>
                     </div>
                 </section>
 
-                <section id="platform" class="bg-zinc-50 py-20">
+                <section id="manfaat" class="bg-zinc-50 py-20">
                     <div class="mx-auto grid max-w-7xl gap-10 px-5 sm:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
                         <div>
-                            <p class="text-sm font-bold uppercase tracking-[0.18em] text-emerald-700">Satu sistem operasional</p>
+                            <p class="text-sm font-bold uppercase tracking-[0.18em] text-emerald-700">Manfaat untuk studio</p>
                             <h2 class="mt-4 text-3xl font-bold tracking-tight text-zinc-950 sm:text-4xl">
-                                Pengalaman member, jadwal trainer, pembayaran, dan laporan dalam satu alur.
+                                Aktivitas harian jadi lebih tertata dari awal sampai akhir.
                             </h2>
                             <p class="mt-5 text-base leading-8 text-zinc-600">
-                                Backend ini mendukung aplikasi mobile dan panel admin dengan Laravel Sanctum, service layer yang rapi, API Resource, queue, notifikasi, dan resource Filament untuk operasional harian.
+                                Fitness Akhwat membantu tim menjaga alur kerja tetap rapi, mulai dari member baru, pemilihan paket, jadwal kelas, kehadiran, hingga pembelian produk di studio.
                             </p>
                         </div>
 
                         <div class="grid gap-4 sm:grid-cols-2">
-                            <div class="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
-                                <p class="text-sm font-semibold text-zinc-500">Hari Ini</p>
-                                <p class="mt-2 text-3xl font-bold text-zinc-950">42</p>
-                                <p class="mt-1 text-sm text-zinc-600">Kursi kelas terbooking</p>
+                            <div class="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
+                                <p class="text-lg font-bold text-zinc-950">Member lebih mudah dilayani</p>
+                                <p class="mt-3 text-sm leading-6 text-zinc-600">Informasi member, status paket, dan riwayat aktivitas bisa dikelola dengan lebih teratur.</p>
                             </div>
-                            <div class="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
-                                <p class="text-sm font-semibold text-zinc-500">Check-in</p>
-                                <p class="mt-2 text-3xl font-bold text-emerald-700">87%</p>
-                                <p class="mt-1 text-sm text-zinc-600">Penyelesaian absensi QR</p>
+                            <div class="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
+                                <p class="text-lg font-bold text-zinc-950">Jadwal kelas lebih jelas</p>
+                                <p class="mt-3 text-sm leading-6 text-zinc-600">Admin dapat menyiapkan kelas, trainer, kapasitas, dan lokasi dengan lebih mudah.</p>
                             </div>
-                            <div class="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
-                                <p class="text-sm font-semibold text-zinc-500">Pendapatan</p>
-                                <p class="mt-2 text-3xl font-bold text-zinc-950">IDR 18.4M</p>
-                                <p class="mt-1 text-sm text-zinc-600">Keanggotaan dan penjualan toko</p>
+                            <div class="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
+                                <p class="text-lg font-bold text-zinc-950">Kehadiran lebih tertib</p>
+                                <p class="mt-3 text-sm leading-6 text-zinc-600">Proses check-in membantu tim mencatat kedatangan member dengan cepat dan rapi.</p>
                             </div>
-                            <div class="rounded-lg border border-zinc-200 bg-emerald-950 p-5 text-white shadow-sm">
-                                <p class="text-sm font-semibold text-emerald-100">Pembayaran</p>
-                                <p class="mt-2 text-3xl font-bold">Midtrans</p>
-                                <p class="mt-1 text-sm text-emerald-50">Integrasi siap checkout</p>
+                            <div class="rounded-lg border border-zinc-200 bg-emerald-950 p-6 text-white shadow-sm">
+                                <p class="text-lg font-bold">Toko studio ikut terkelola</p>
+                                <p class="mt-3 text-sm leading-6 text-emerald-50">Produk, stok, dan pesanan bisa dipantau dalam alur kerja yang sama.</p>
                             </div>
                         </div>
                     </div>
                 </section>
 
-                <section id="features" class="bg-white py-20">
+                <section id="pengelolaan" class="bg-white py-20">
                     <div class="mx-auto max-w-7xl px-5 sm:px-8">
                         <div class="max-w-3xl">
-                            <p class="text-sm font-bold uppercase tracking-[0.18em] text-emerald-700">Fitur lengkap</p>
+                            <p class="text-sm font-bold uppercase tracking-[0.18em] text-emerald-700">Yang bisa dikelola</p>
                             <h2 class="mt-4 text-3xl font-bold tracking-tight text-zinc-950 sm:text-4xl">
-                                Semua kebutuhan dari registrasi sampai laporan.
+                                Semua hal penting untuk menjalankan studio ada dalam satu tempat.
                             </h2>
                         </div>
 
                         <div class="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                             @foreach ([
-                                ['title' => 'Autentikasi', 'copy' => 'Registrasi, login, lupa password, API profil yang aman, dan sesi token Sanctum.'],
-                                ['title' => 'Keanggotaan', 'copy' => 'Paket, pembelian, pelacakan keanggotaan aktif, riwayat member, dan visibilitas admin.'],
-                                ['title' => 'Booking Kelas', 'copy' => 'Profil trainer, jadwal, kapasitas booking, pembatalan, dan kesiapan absensi.'],
-                                ['title' => 'Absensi', 'copy' => 'Alur check-in QR dengan riwayat member dan laporan operasional untuk staf.'],
-                                ['title' => 'Toko', 'copy' => 'Kategori, produk, keranjang, checkout, status transaksi, dan alur stok.'],
-                                ['title' => 'Pembayaran', 'copy' => 'Model transaksi siap Midtrans untuk membership dan checkout produk.'],
-                                ['title' => 'Notifikasi', 'copy' => 'Integrasi notifikasi push Firebase untuk booking, pembayaran, dan membership.'],
-                                ['title' => 'Panel Admin', 'copy' => 'Resource Filament untuk member, trainer, jadwal, produk, transaksi, dan laporan.'],
+                                ['title' => 'Member', 'copy' => 'Simpan data member, status paket, dan informasi penting agar pelayanan lebih personal.'],
+                                ['title' => 'Paket Latihan', 'copy' => 'Atur pilihan paket yang ditawarkan kepada member sesuai kebutuhan studio.'],
+                                ['title' => 'Kelas dan Trainer', 'copy' => 'Kelola jadwal, lokasi, kapasitas kelas, dan trainer yang bertugas.'],
+                                ['title' => 'Kehadiran', 'copy' => 'Catat kehadiran member dengan alur check-in yang lebih praktis.'],
+                                ['title' => 'Produk Studio', 'copy' => 'Kelola produk pendukung seperti makanan sehat, minuman, dan suplemen.'],
+                                ['title' => 'Pembelian', 'copy' => 'Pantau pembelian paket dan pesanan produk dalam riwayat yang mudah dibaca.'],
+                                ['title' => 'Pengingat', 'copy' => 'Bantu member mendapat informasi penting seputar booking, pembayaran, dan aktivitas studio.'],
+                                ['title' => 'Ringkasan Usaha', 'copy' => 'Owner dapat melihat gambaran umum usaha dari halaman admin yang aman.'],
                             ] as $feature)
                                 <article class="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-md">
                                     <div class="mb-5 h-1.5 w-12 rounded-full bg-emerald-500"></div>
@@ -148,59 +144,33 @@
                     </div>
                 </section>
 
-                <section id="operations" class="bg-emerald-950 py-20 text-white">
-                    <div class="mx-auto grid max-w-7xl gap-10 px-5 sm:px-8 lg:grid-cols-[1fr_1.1fr] lg:items-start">
+                <section id="owner" class="bg-emerald-950 py-20 text-white">
+                    <div class="mx-auto grid max-w-7xl gap-10 px-5 sm:px-8 lg:grid-cols-[1fr_1.1fr] lg:items-center">
                         <div>
-                            <p class="text-sm font-bold uppercase tracking-[0.18em] text-emerald-200">Operasional admin</p>
+                            <p class="text-sm font-bold uppercase tracking-[0.18em] text-emerald-200">Untuk owner dan admin</p>
                             <h2 class="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
-                                Dibuat untuk tim yang menjalankan studio.
+                                Halaman depan tetap aman. Data penting hanya dibuka dari ruang admin.
                             </h2>
                             <p class="mt-5 text-base leading-8 text-emerald-50">
-                                Staf dapat mengelola member, trainer, jadwal kelas, katalog produk, transaksi, dan laporan tanpa berpindah ke alat yang terpisah.
+                                Landing page ini hanya menjadi pintu masuk dan pengenalan sistem. Angka bisnis, data member, riwayat pembayaran, dan laporan internal tetap berada di halaman admin yang membutuhkan akses masuk.
                             </p>
                             <a href="{{ url('/admin') }}" class="mt-8 inline-flex rounded-lg bg-white px-5 py-3 text-sm font-bold text-emerald-950 transition hover:bg-emerald-50">
-                                Masuk ke Admin Filament
+                                Buka Ruang Admin
                             </a>
                         </div>
 
-                        <div class="rounded-lg border border-white/10 bg-white/10 p-5 shadow-2xl backdrop-blur">
-                            <div class="flex items-center justify-between border-b border-white/10 pb-4">
-                                <div>
-                                    <p class="text-sm font-semibold text-emerald-100">Dashboard Analitik</p>
-                                    <p class="text-xs text-emerald-50/80">Ringkasan operasional langsung</p>
-                                </div>
-                                <span class="rounded-lg bg-emerald-400 px-3 py-1 text-xs font-bold text-emerald-950">Sehat</span>
-                            </div>
-
-                            <div class="mt-5 grid gap-3 sm:grid-cols-3">
-                                <div class="rounded-lg bg-white p-4 text-zinc-950">
-                                    <p class="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">Member</p>
-                                    <p class="mt-3 text-2xl font-bold">1,248</p>
-                                </div>
-                                <div class="rounded-lg bg-white p-4 text-zinc-950">
-                                    <p class="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">Booking</p>
-                                    <p class="mt-3 text-2xl font-bold">316</p>
-                                </div>
-                                <div class="rounded-lg bg-white p-4 text-zinc-950">
-                                    <p class="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">Penjualan</p>
-                                    <p class="mt-3 text-2xl font-bold">96</p>
-                                </div>
-                            </div>
-
+                        <div class="rounded-lg border border-white/10 bg-white/10 p-6 shadow-2xl backdrop-blur">
+                            <p class="text-sm font-semibold text-emerald-100">Fokus halaman admin</p>
                             <div class="mt-5 space-y-3">
                                 @foreach ([
-                                    ['label' => 'Perpanjangan membership', 'value' => '72%'],
-                                    ['label' => 'Okupansi kelas', 'value' => '84%'],
-                                    ['label' => 'Checkout toko selesai', 'value' => '68%'],
-                                ] as $metric)
-                                    <div class="rounded-lg bg-white/10 p-4">
-                                        <div class="flex items-center justify-between text-sm">
-                                            <span>{{ $metric['label'] }}</span>
-                                            <span class="font-bold">{{ $metric['value'] }}</span>
-                                        </div>
-                                        <div class="mt-3 h-2 rounded-full bg-white/15">
-                                            <div class="h-2 rounded-full bg-emerald-300" style="width: {{ $metric['value'] }}"></div>
-                                        </div>
+                                    'Membantu admin bekerja lebih cepat dan terarah',
+                                    'Membantu owner melihat kondisi usaha dari tempat yang aman',
+                                    'Menjaga data penting tetap berada di area yang terlindungi',
+                                    'Membuat pengalaman member terasa lebih profesional',
+                                ] as $item)
+                                    <div class="flex gap-3 rounded-lg bg-white/10 p-4">
+                                        <span class="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-300 text-xs font-bold text-emerald-950">✓</span>
+                                        <p class="text-sm leading-6 text-emerald-50">{{ $item }}</p>
                                     </div>
                                 @endforeach
                             </div>
@@ -211,11 +181,20 @@
                 <section class="bg-zinc-50 py-16">
                     <div class="mx-auto max-w-7xl px-5 sm:px-8">
                         <div class="rounded-lg border border-zinc-200 bg-white p-8 shadow-sm">
-                            <p class="text-sm font-bold uppercase tracking-[0.18em] text-emerald-700">Stack produksi</p>
-                            <div class="mt-6 flex flex-wrap gap-3">
-                                @foreach (['Laravel 13+', 'PHP 8.4', 'PostgreSQL', 'Sanctum', 'Filament v5', 'Queue', 'Notifikasi', 'OpenAPI', 'Flutter', 'Riverpod', 'Dio', 'Caddy', 'GitHub Actions'] as $tool)
-                                    <span class="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-semibold text-zinc-700">{{ $tool }}</span>
-                                @endforeach
+                            <p class="text-sm font-bold uppercase tracking-[0.18em] text-emerald-700">Siap digunakan tim</p>
+                            <div class="mt-5 grid gap-4 md:grid-cols-3">
+                                <div>
+                                    <p class="font-bold text-zinc-950">Untuk admin</p>
+                                    <p class="mt-2 text-sm leading-6 text-zinc-600">Alur kerja harian menjadi lebih jelas, mulai dari member sampai transaksi.</p>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-zinc-950">Untuk owner</p>
+                                    <p class="mt-2 text-sm leading-6 text-zinc-600">Kontrol usaha lebih mudah tanpa harus membuka banyak catatan terpisah.</p>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-zinc-950">Untuk member</p>
+                                    <p class="mt-2 text-sm leading-6 text-zinc-600">Layanan terasa lebih rapi, cepat, dan nyaman dari awal bergabung.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -224,8 +203,8 @@
 
             <footer class="bg-white py-8">
                 <div class="mx-auto flex max-w-7xl flex-col gap-3 px-5 text-sm text-zinc-500 sm:flex-row sm:items-center sm:justify-between sm:px-8">
-                    <p>&copy; {{ now()->year }} Fitness Akhwat. Dibuat untuk operasional fitness yang fokus dan menjaga privasi.</p>
-                    <a href="{{ url('/admin') }}" class="font-semibold text-emerald-700 hover:text-emerald-800">Akses admin</a>
+                    <p>&copy; {{ now()->year }} Fitness Akhwat. Sistem pendukung operasional studio yang rapi dan aman.</p>
+                    <a href="{{ url('/admin') }}" class="font-semibold text-emerald-700 hover:text-emerald-800">Masuk Admin</a>
                 </div>
             </footer>
         </div>
