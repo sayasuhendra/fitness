@@ -18,6 +18,10 @@ class MembershipHistoryResource extends JsonResource
             'purchased_at' => $this->created_at->toISOString(),
             'status' => $this->status,
             'expired_at' => $this->expires_at?->toDateString() ?? now()->toDateString(),
+            'includes_personal_trainer' => $this->includes_personal_trainer,
+            'visits_allowed' => $this->visits_allowed,
+            'visits_used' => $this->visits_used,
+            'remaining_visits' => $this->remainingVisits(),
         ];
     }
 }

@@ -14,8 +14,13 @@ class ClassBookingResource extends JsonResource
         return [
             'id' => $this->id,
             'fitness_class' => new FitnessClassResource($this->fitnessClass),
+            'booked_for_date' => $this->booked_for_date?->toDateString(),
             'booked_at' => $this->booked_at->toISOString(),
             'status' => $this->status,
+            'access_type' => $this->access_type,
+            'personal_trainer_requested' => $this->personal_trainer_requested,
+            'amount' => (float) $this->amount,
+            'payment_method' => $this->payment_method,
         ];
     }
 }

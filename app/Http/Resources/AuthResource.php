@@ -22,6 +22,8 @@ class AuthResource extends JsonResource
             'avatar_url' => $this->avatar_url,
             'membership_status' => $membership?->status ?? 'inactive',
             'membership_expiry' => $membership?->expires_at?->toDateString(),
+            'membership_includes_personal_trainer' => $membership?->includes_personal_trainer ?? false,
+            'membership_remaining_visits' => $membership?->remainingVisits(),
         ];
     }
 }

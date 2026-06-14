@@ -21,6 +21,11 @@ final class CancelBookingAction
 
         $booking->update(['status' => 'cancelled', 'cancelled_at' => now()]);
 
+        $membership = $member->activeMembership();
+        if ($booking->access_type === 'membership' && $membership !== null && $membership->visits_used > 0) {
+            $membership->decrement('visits_used');
+        }
+
         return $booking;
     }
 }

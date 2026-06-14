@@ -22,6 +22,10 @@ class FitnessClassesTable
                     ->searchable(),
                 TextColumn::make('name')
                     ->searchable(),
+                TextColumn::make('class_type')
+                    ->label('Type')
+                    ->badge()
+                    ->searchable(),
                 TextColumn::make('confirmed_bookings_count')
                     ->label('Booked')
                     ->counts(['bookings' => fn ($query) => $query->where('status', 'confirmed')])
@@ -33,8 +37,13 @@ class FitnessClassesTable
                 TextColumn::make('location')
                     ->searchable(),
                 TextColumn::make('class_date')
+                    ->label('Start Date')
                     ->date()
                     ->sortable(),
+                TextColumn::make('recurring_days')
+                    ->label('Weekly')
+                    ->formatStateUsing(fn ($state, $record): string => $record->is_recurring ? implode(', ', $record->recurring_days ?? []) : 'No')
+                    ->badge(),
                 TextColumn::make('start_time')
                     ->time()
                     ->sortable(),
@@ -43,6 +52,9 @@ class FitnessClassesTable
                     ->sortable(),
                 IconColumn::make('is_active')
                     ->label('Open')
+                    ->boolean(),
+                IconColumn::make('allow_drop_in')
+                    ->label('Drop-in')
                     ->boolean(),
                 TextColumn::make('created_at')
                     ->dateTime()
@@ -59,8 +71,21 @@ class FitnessClassesTable
                     ->relationship('trainer.user', 'name')
                     ->searchable()
                     ->preload(),
+                SelectFilter::make('class_type')
+                    ->options([
+                        'zumba' => 'Zumba',
+                        'yoga' => 'Yoga',
+                        'circuit_training' => 'Circuit Training',
+                        'pilates' => 'Pilates',
+                        'strength' => 'Strength',
+                        'general' => 'General',
+                    ]),
                 TernaryFilter::make('is_active')
                     ->label('Open for booking'),
+                TernaryFilter::make('is_recurring')
+                    ->label('Repeats weekly'),
+                TernaryFilter::make('allow_drop_in')
+                    ->label('Allows one-time visitor'),
             ])
             ->recordActions([
                 EditAction::make(),

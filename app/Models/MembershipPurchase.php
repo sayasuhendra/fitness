@@ -20,6 +20,9 @@ class MembershipPurchase extends Model
         'starts_at',
         'expires_at',
         'status',
+        'includes_personal_trainer',
+        'visits_allowed',
+        'visits_used',
         'payment_method',
         'amount',
         'payment_reference',
@@ -27,7 +30,12 @@ class MembershipPurchase extends Model
 
     protected function casts(): array
     {
-        return ['starts_at' => 'datetime', 'expires_at' => 'datetime', 'amount' => 'decimal:2'];
+        return [
+            'starts_at' => 'datetime',
+            'expires_at' => 'datetime',
+            'includes_personal_trainer' => 'boolean',
+            'amount' => 'decimal:2',
+        ];
     }
 
     public function member(): BelongsTo
@@ -38,5 +46,19 @@ class MembershipPurchase extends Model
     public function package(): BelongsTo
     {
         return $this->belongsTo(MembershipPackage::class, 'membership_package_id');
+    }
+
+    public function hasRemainingVisits(): bool
+    {
+        return $this->visits_allowed === null || $this->visits_used < $this->visits_allowed;
+    }
+
+    public function remainingVisits(): ?int
+    {
+        if ($this->visits_allowed === null) {
+            return null;
+        }
+
+        return max(0, $this->visits_allowed - $this->visits_used);
     }
 }

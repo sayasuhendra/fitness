@@ -28,6 +28,7 @@ class MembershipController extends Controller
         $purchase = $action->execute($request->user()->member, new PurchaseMembershipData(
             packageId: (int) $request->validated('package_id'),
             paymentMethod: $request->validated('payment_method'),
+            billingCycle: $request->validated('billing_cycle') ?? null,
         ));
 
         return ApiResponder::success(new MembershipHistoryResource($purchase->load('package')), 'Membership activated', 201);

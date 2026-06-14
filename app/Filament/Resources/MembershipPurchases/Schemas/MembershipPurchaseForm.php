@@ -5,6 +5,7 @@ namespace App\Filament\Resources\MembershipPurchases\Schemas;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -60,6 +61,21 @@ class MembershipPurchaseForm
                             ->native(false),
                         DateTimePicker::make('expires_at')
                             ->native(false),
+                    ])
+                    ->columns(3),
+                Section::make('Visit Benefits')
+                    ->schema([
+                        Toggle::make('includes_personal_trainer')
+                            ->label('Includes Personal Trainer'),
+                        TextInput::make('visits_allowed')
+                            ->label('Maximum Visits')
+                            ->numeric()
+                            ->helperText('Leave empty for unlimited visits.'),
+                        TextInput::make('visits_used')
+                            ->label('Visits Used')
+                            ->numeric()
+                            ->default(0)
+                            ->required(),
                     ])
                     ->columns(3),
             ]);

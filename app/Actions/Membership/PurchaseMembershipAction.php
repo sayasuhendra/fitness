@@ -18,13 +18,19 @@ final class PurchaseMembershipAction
         return DB::transaction(function () use ($member, $data): MembershipPurchase {
             $package = MembershipPackage::query()->where('is_active', true)->findOrFail($data->packageId);
             $startsAt = now();
+            $durationDays = $data->billingCycle === 'yearly' && $package->billing_cycle === 'monthly'
+                ? 365
+                : $package->duration_days;
 
             return MembershipPurchase::query()->create([
                 'member_id' => $member->id,
                 'membership_package_id' => $package->id,
                 'starts_at' => $startsAt,
-                'expires_at' => $startsAt->copy()->addDays($package->duration_days),
+                'expires_at' => $startsAt->copy()->addDays($durationDays),
                 'status' => 'active',
+                'includes_personal_trainer' => $package->includes_personal_trainer,
+                'visits_allowed' => $package->has_visit_limit ? $package->visit_limit : null,
+                'visits_used' => 0,
                 'payment_method' => $data->paymentMethod,
                 'amount' => $package->price,
                 'payment_reference' => 'MID-'.Str::upper(Str::random(12)),

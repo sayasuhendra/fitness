@@ -16,7 +16,15 @@ class MembershipPackageResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'price' => (float) $this->price,
+            'original_price' => $this->original_price !== null ? (float) $this->original_price : null,
+            'discount_percent' => $this->discount_percent,
             'duration_days' => $this->duration_days,
+            'package_type' => $this->package_type,
+            'billing_cycle' => $this->billing_cycle,
+            'includes_personal_trainer' => $this->includes_personal_trainer,
+            'has_visit_limit' => $this->has_visit_limit,
+            'visit_limit' => $this->visit_limit,
+            'visit_label' => $this->visitLabel(),
         ];
     }
 }

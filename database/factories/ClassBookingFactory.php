@@ -17,7 +17,11 @@ class ClassBookingFactory extends Factory
         return [
             'member_id' => Member::factory(),
             'fitness_class_id' => FitnessClass::factory(),
+            'booked_for_date' => now()->toDateString(),
             'status' => 'confirmed',
+            'access_type' => 'membership',
+            'personal_trainer_requested' => false,
+            'amount' => 0,
             'booked_at' => now(),
         ];
     }

@@ -14,11 +14,29 @@ class ClassBooking extends Model
     /** @use HasFactory<ClassBookingFactory> */
     use HasFactory;
 
-    protected $fillable = ['member_id', 'fitness_class_id', 'status', 'booked_at', 'cancelled_at'];
+    protected $fillable = [
+        'member_id',
+        'fitness_class_id',
+        'booked_for_date',
+        'status',
+        'access_type',
+        'personal_trainer_requested',
+        'amount',
+        'payment_method',
+        'payment_reference',
+        'booked_at',
+        'cancelled_at',
+    ];
 
     protected function casts(): array
     {
-        return ['booked_at' => 'datetime', 'cancelled_at' => 'datetime'];
+        return [
+            'booked_for_date' => 'date',
+            'personal_trainer_requested' => 'boolean',
+            'amount' => 'decimal:2',
+            'booked_at' => 'datetime',
+            'cancelled_at' => 'datetime',
+        ];
     }
 
     public function member(): BelongsTo

@@ -15,8 +15,15 @@ class MembershipPackageFactory extends Factory
         return [
             'name' => $this->faker->randomElement(['Starter', 'Active', 'Premium']),
             'description' => $this->faker->sentence(),
+            'package_type' => 'membership',
+            'billing_cycle' => $this->faker->randomElement(['monthly', 'yearly']),
+            'includes_personal_trainer' => false,
+            'has_visit_limit' => false,
+            'visit_limit' => null,
             'duration_days' => $this->faker->randomElement([30, 90, 365]),
             'price' => $this->faker->numberBetween(150000, 2500000),
+            'discount_percent' => 0,
+            'original_price' => null,
             'is_active' => true,
         ];
     }

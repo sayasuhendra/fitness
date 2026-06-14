@@ -9,5 +9,6 @@ final readonly class PurchaseMembershipData
     public function __construct(
         public int $packageId,
         public string $paymentMethod,
+        public ?string $billingCycle = null,
     ) {}
 }

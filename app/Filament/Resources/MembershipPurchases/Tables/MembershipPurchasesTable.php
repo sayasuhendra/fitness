@@ -5,6 +5,7 @@ namespace App\Filament\Resources\MembershipPurchases\Tables;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -40,6 +41,13 @@ class MembershipPurchasesTable
                     ->label('Payment')
                     ->badge()
                     ->searchable(),
+                IconColumn::make('includes_personal_trainer')
+                    ->label('PT')
+                    ->boolean(),
+                TextColumn::make('visits_used')
+                    ->label('Visits')
+                    ->formatStateUsing(fn ($state, $record): string => $record->visits_allowed === null ? "{$state} / Unlimited" : "{$state} / {$record->visits_allowed}")
+                    ->badge(),
                 TextColumn::make('amount')
                     ->money('IDR')
                     ->sortable(),

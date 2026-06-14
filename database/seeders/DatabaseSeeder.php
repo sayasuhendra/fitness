@@ -39,25 +39,76 @@ class DatabaseSeeder extends Seeder
         $starter = MembershipPackage::query()->updateOrCreate([
             'name' => 'Starter Bulanan',
         ], [
-            'description' => 'Akses kelas reguler dan booking member selama 30 hari.',
+            'description' => 'Membership bulanan tanpa personal trainer, cocok untuk member yang ingin latihan mandiri.',
+            'package_type' => 'membership',
+            'billing_cycle' => 'monthly',
+            'includes_personal_trainer' => false,
+            'has_visit_limit' => true,
+            'visit_limit' => 12,
             'duration_days' => 30,
             'price' => 350000,
+            'discount_percent' => 0,
+            'original_price' => null,
             'is_active' => true,
         ]);
         MembershipPackage::query()->updateOrCreate([
-            'name' => 'Komitmen Tiga Bulan',
+            'name' => 'Personal Trainer Bulanan',
         ], [
-            'description' => 'Pilihan terbaik untuk latihan mingguan yang konsisten selama 90 hari.',
-            'duration_days' => 90,
-            'price' => 900000,
+            'description' => 'Membership bulanan dengan personal trainer untuk pendampingan latihan yang lebih terarah.',
+            'package_type' => 'membership',
+            'billing_cycle' => 'monthly',
+            'includes_personal_trainer' => true,
+            'has_visit_limit' => true,
+            'visit_limit' => 8,
+            'duration_days' => 30,
+            'price' => 950000,
+            'discount_percent' => 0,
+            'original_price' => null,
             'is_active' => true,
         ]);
         MembershipPackage::query()->updateOrCreate([
             'name' => 'Akhwat Tahunan',
         ], [
-            'description' => 'Akses setahun penuh dengan prioritas booking.',
+            'description' => 'Membership tahunan unlimited visit dengan harga lebih hemat untuk rutinitas jangka panjang.',
+            'package_type' => 'membership',
+            'billing_cycle' => 'yearly',
+            'includes_personal_trainer' => false,
+            'has_visit_limit' => false,
+            'visit_limit' => null,
             'duration_days' => 365,
             'price' => 3200000,
+            'discount_percent' => 15,
+            'original_price' => 3800000,
+            'is_active' => true,
+        ]);
+        MembershipPackage::query()->updateOrCreate([
+            'name' => 'One-Time Visit',
+        ], [
+            'description' => 'Sekali datang tanpa personal trainer untuk calon member yang ingin mencoba kelas.',
+            'package_type' => 'one_time',
+            'billing_cycle' => 'one_time',
+            'includes_personal_trainer' => false,
+            'has_visit_limit' => true,
+            'visit_limit' => 1,
+            'duration_days' => 1,
+            'price' => 75000,
+            'discount_percent' => 0,
+            'original_price' => null,
+            'is_active' => true,
+        ]);
+        MembershipPackage::query()->updateOrCreate([
+            'name' => 'One-Time Visit + Personal Trainer',
+        ], [
+            'description' => 'Sekali datang dengan personal trainer untuk pengalaman latihan yang lebih personal.',
+            'package_type' => 'one_time',
+            'billing_cycle' => 'one_time',
+            'includes_personal_trainer' => true,
+            'has_visit_limit' => true,
+            'visit_limit' => 1,
+            'duration_days' => 1,
+            'price' => 125000,
+            'discount_percent' => 0,
+            'original_price' => null,
             'is_active' => true,
         ]);
 
@@ -69,6 +120,9 @@ class DatabaseSeeder extends Seeder
             'starts_at' => now()->subDays(2),
             'expires_at' => now()->addDays(28),
             'status' => 'active',
+            'includes_personal_trainer' => $starter->includes_personal_trainer,
+            'visits_allowed' => $starter->visit_limit,
+            'visits_used' => 0,
             'payment_method' => 'midtrans',
             'amount' => $starter->price,
             'payment_reference' => 'MID-SEED-MEMBER',
@@ -79,33 +133,67 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Pilates Pagi',
                 'date' => now()->addDays(1)->toDateString(),
                 'description' => 'Kelas pilates untuk postur, core strength, dan mobilitas ringan.',
+                'class_type' => 'pilates',
                 'location' => 'Studio A',
                 'start_time' => '08:00:00',
                 'end_time' => '09:00:00',
+                'is_recurring' => true,
+                'recurring_days' => ['monday', 'wednesday', 'friday'],
             ],
             [
                 'name' => 'Strength untuk Pemula',
                 'date' => now()->addDays(2)->toDateString(),
                 'description' => 'Latihan beban dasar dengan teknik aman dan pendampingan trainer.',
+                'class_type' => 'strength',
                 'location' => 'Studio B',
                 'start_time' => '09:30:00',
                 'end_time' => '10:30:00',
+                'is_recurring' => true,
+                'recurring_days' => ['tuesday', 'thursday'],
             ],
             [
                 'name' => 'Yoga Flow',
                 'date' => now()->addDays(3)->toDateString(),
                 'description' => 'Sesi flow santai untuk fleksibilitas, napas, dan pemulihan tubuh.',
+                'class_type' => 'yoga',
                 'location' => 'Studio C',
                 'start_time' => '16:00:00',
                 'end_time' => '17:00:00',
+                'is_recurring' => true,
+                'recurring_days' => ['saturday', 'sunday'],
+            ],
+            [
+                'name' => 'Zumba Akhwat',
+                'date' => now()->addDays(1)->toDateString(),
+                'description' => 'Kelas cardio dance yang fun untuk stamina dan mood booster.',
+                'class_type' => 'zumba',
+                'location' => 'Studio B',
+                'start_time' => '18:30:00',
+                'end_time' => '19:30:00',
+                'is_recurring' => true,
+                'recurring_days' => ['monday', 'thursday'],
+            ],
+            [
+                'name' => 'Circuit Training',
+                'date' => now()->addDays(2)->toDateString(),
+                'description' => 'Latihan circuit intensitas sedang dengan beberapa station gerakan.',
+                'class_type' => 'circuit_training',
+                'location' => 'Studio A',
+                'start_time' => '17:00:00',
+                'end_time' => '18:00:00',
+                'is_recurring' => true,
+                'recurring_days' => ['tuesday', 'friday'],
             ],
             [
                 'name' => 'Mobility Recovery',
                 'date' => now()->subDay()->toDateString(),
                 'description' => 'Kelas pemulihan setelah latihan untuk sendi dan otot.',
+                'class_type' => 'general',
                 'location' => 'Studio A',
                 'start_time' => '07:00:00',
                 'end_time' => '08:00:00',
+                'is_recurring' => false,
+                'recurring_days' => null,
             ],
         ];
 
@@ -117,11 +205,18 @@ class DatabaseSeeder extends Seeder
             ], [
                 'trainer_id' => $trainer->id,
                 'description' => $seed['description'],
+                'class_type' => $seed['class_type'],
                 'capacity' => 12,
                 'location' => $seed['location'],
+                'is_recurring' => $seed['is_recurring'],
+                'recurring_days' => $seed['recurring_days'],
+                'recurrence_ends_at' => now()->addMonths(3)->toDateString(),
                 'start_time' => $seed['start_time'],
                 'end_time' => $seed['end_time'],
                 'is_active' => true,
+                'allow_drop_in' => true,
+                'drop_in_price' => 75000,
+                'trainer_addon_price' => 50000,
             ]));
         }
 
@@ -130,8 +225,12 @@ class DatabaseSeeder extends Seeder
             ClassBooking::query()->updateOrCreate([
                 'member_id' => $member->id,
                 'fitness_class_id' => $upcomingClass->id,
+                'booked_for_date' => $upcomingClass->class_date->toDateString(),
             ], [
                 'status' => 'confirmed',
+                'access_type' => 'membership',
+                'personal_trainer_requested' => false,
+                'amount' => 0,
                 'booked_at' => now()->subHours(3),
                 'cancelled_at' => null,
             ]);
@@ -146,6 +245,8 @@ class DatabaseSeeder extends Seeder
             'status' => 'present',
             'location' => 'Fitness Akhwat Studio',
         ]);
+
+        $this->deactivateLegacyDemoProducts();
 
         $products = new Collection;
         foreach ($this->productSeeds() as $seed) {
@@ -310,5 +411,27 @@ class DatabaseSeeder extends Seeder
                 'updated_at' => $notification['created_at'],
             ]);
         }
+    }
+
+    private function deactivateLegacyDemoProducts(): void
+    {
+        Product::query()
+            ->whereIn('name', [
+                'Makanan Sehat 1',
+                'Makanan Sehat 2',
+                'Makanan Sehat 3',
+                'Minuman Sehat 1',
+                'Minuman Sehat 2',
+                'Minuman Sehat 3',
+                'Suplemen 1',
+                'Suplemen 2',
+                'Suplemen 3',
+            ])
+            ->update(['is_active' => false]);
+
+        ProductCategory::query()
+            ->whereIn('slug', ['healthy-food', 'healthy-drink', 'supplements'])
+            ->whereDoesntHave('products')
+            ->delete();
     }
 }
