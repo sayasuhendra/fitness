@@ -24,6 +24,7 @@ class MembershipPackageResource extends JsonResource
             'includes_personal_trainer' => $this->includes_personal_trainer,
             'has_visit_limit' => $this->has_visit_limit,
             'visit_limit' => $this->visit_limit,
+            'allowed_class_types' => $this->allowed_class_types ?? [],
             'visit_label' => $this->visitLabel(),
         ];
     }

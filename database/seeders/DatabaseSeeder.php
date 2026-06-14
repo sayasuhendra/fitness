@@ -6,6 +6,7 @@ namespace Database\Seeders;
 
 use App\Models\Attendance;
 use App\Models\ClassBooking;
+use App\Models\Facility;
 use App\Models\FitnessClass;
 use App\Models\Member;
 use App\Models\MembershipPackage;
@@ -15,10 +16,13 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Trainer;
+use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -32,85 +36,9 @@ class DatabaseSeeder extends Seeder
         $this->call(DemoUserSeeder::class);
 
         $member = Member::query()->where('member_code', 'MBR000001')->firstOrFail();
-        $trainer = Trainer::query()->whereHas('user', function ($query): void {
-            $query->where('email', 'trainer@fitnessakhwat.test');
-        })->firstOrFail();
-
-        $starter = MembershipPackage::query()->updateOrCreate([
-            'name' => 'Starter Bulanan',
-        ], [
-            'description' => 'Membership bulanan tanpa personal trainer, cocok untuk member yang ingin latihan mandiri.',
-            'package_type' => 'membership',
-            'billing_cycle' => 'monthly',
-            'includes_personal_trainer' => false,
-            'has_visit_limit' => true,
-            'visit_limit' => 12,
-            'duration_days' => 30,
-            'price' => 350000,
-            'discount_percent' => 0,
-            'original_price' => null,
-            'is_active' => true,
-        ]);
-        MembershipPackage::query()->updateOrCreate([
-            'name' => 'Personal Trainer Bulanan',
-        ], [
-            'description' => 'Membership bulanan dengan personal trainer untuk pendampingan latihan yang lebih terarah.',
-            'package_type' => 'membership',
-            'billing_cycle' => 'monthly',
-            'includes_personal_trainer' => true,
-            'has_visit_limit' => true,
-            'visit_limit' => 8,
-            'duration_days' => 30,
-            'price' => 950000,
-            'discount_percent' => 0,
-            'original_price' => null,
-            'is_active' => true,
-        ]);
-        MembershipPackage::query()->updateOrCreate([
-            'name' => 'Akhwat Tahunan',
-        ], [
-            'description' => 'Membership tahunan unlimited visit dengan harga lebih hemat untuk rutinitas jangka panjang.',
-            'package_type' => 'membership',
-            'billing_cycle' => 'yearly',
-            'includes_personal_trainer' => false,
-            'has_visit_limit' => false,
-            'visit_limit' => null,
-            'duration_days' => 365,
-            'price' => 3200000,
-            'discount_percent' => 15,
-            'original_price' => 3800000,
-            'is_active' => true,
-        ]);
-        MembershipPackage::query()->updateOrCreate([
-            'name' => 'One-Time Visit',
-        ], [
-            'description' => 'Sekali datang tanpa personal trainer untuk calon member yang ingin mencoba kelas.',
-            'package_type' => 'one_time',
-            'billing_cycle' => 'one_time',
-            'includes_personal_trainer' => false,
-            'has_visit_limit' => true,
-            'visit_limit' => 1,
-            'duration_days' => 1,
-            'price' => 75000,
-            'discount_percent' => 0,
-            'original_price' => null,
-            'is_active' => true,
-        ]);
-        MembershipPackage::query()->updateOrCreate([
-            'name' => 'One-Time Visit + Personal Trainer',
-        ], [
-            'description' => 'Sekali datang dengan personal trainer untuk pengalaman latihan yang lebih personal.',
-            'package_type' => 'one_time',
-            'billing_cycle' => 'one_time',
-            'includes_personal_trainer' => true,
-            'has_visit_limit' => true,
-            'visit_limit' => 1,
-            'duration_days' => 1,
-            'price' => 125000,
-            'discount_percent' => 0,
-            'original_price' => null,
-            'is_active' => true,
-        ]);
+        $trainers = $this->seedAkhwatGymTrainers();
+        $starter = $this->seedAkhwatGymPackages();
+        $this->seedAkhwatGymFacilities();
 
         MembershipPurchase::query()->updateOrCreate([
             'payment_reference' => 'MID-SEED-MEMBER',
@@ -128,99 +56,42 @@ class DatabaseSeeder extends Seeder
             'payment_reference' => 'MID-SEED-MEMBER',
         ]);
 
-        $classSeeds = [
-            [
-                'name' => 'Pilates Pagi',
-                'date' => now()->addDays(1)->toDateString(),
-                'description' => 'Kelas pilates untuk postur, core strength, dan mobilitas ringan.',
-                'class_type' => 'pilates',
-                'location' => 'Studio A',
-                'start_time' => '08:00:00',
-                'end_time' => '09:00:00',
-                'is_recurring' => true,
-                'recurring_days' => ['monday', 'wednesday', 'friday'],
-            ],
-            [
-                'name' => 'Strength untuk Pemula',
-                'date' => now()->addDays(2)->toDateString(),
-                'description' => 'Latihan beban dasar dengan teknik aman dan pendampingan trainer.',
-                'class_type' => 'strength',
-                'location' => 'Studio B',
-                'start_time' => '09:30:00',
-                'end_time' => '10:30:00',
-                'is_recurring' => true,
-                'recurring_days' => ['tuesday', 'thursday'],
-            ],
-            [
-                'name' => 'Yoga Flow',
-                'date' => now()->addDays(3)->toDateString(),
-                'description' => 'Sesi flow santai untuk fleksibilitas, napas, dan pemulihan tubuh.',
-                'class_type' => 'yoga',
-                'location' => 'Studio C',
-                'start_time' => '16:00:00',
-                'end_time' => '17:00:00',
-                'is_recurring' => true,
-                'recurring_days' => ['saturday', 'sunday'],
-            ],
-            [
-                'name' => 'Zumba Akhwat',
-                'date' => now()->addDays(1)->toDateString(),
-                'description' => 'Kelas cardio dance yang fun untuk stamina dan mood booster.',
-                'class_type' => 'zumba',
-                'location' => 'Studio B',
-                'start_time' => '18:30:00',
-                'end_time' => '19:30:00',
-                'is_recurring' => true,
-                'recurring_days' => ['monday', 'thursday'],
-            ],
-            [
-                'name' => 'Circuit Training',
-                'date' => now()->addDays(2)->toDateString(),
-                'description' => 'Latihan circuit intensitas sedang dengan beberapa station gerakan.',
-                'class_type' => 'circuit_training',
-                'location' => 'Studio A',
-                'start_time' => '17:00:00',
-                'end_time' => '18:00:00',
-                'is_recurring' => true,
-                'recurring_days' => ['tuesday', 'friday'],
-            ],
-            [
-                'name' => 'Mobility Recovery',
-                'date' => now()->subDay()->toDateString(),
-                'description' => 'Kelas pemulihan setelah latihan untuk sendi dan otot.',
-                'class_type' => 'general',
-                'location' => 'Studio A',
-                'start_time' => '07:00:00',
-                'end_time' => '08:00:00',
-                'is_recurring' => false,
-                'recurring_days' => null,
-            ],
-        ];
+        $classSeeds = $this->akhwatGymScheduleSeeds();
+        FitnessClass::query()
+            ->whereIn('name', [
+                'Pilates Pagi',
+                'Strength untuk Pemula',
+                'Yoga Flow',
+                'Zumba Akhwat',
+                'Circuit Training',
+                'Mobility Recovery',
+            ])
+            ->update(['is_active' => false]);
 
         $classes = new Collection;
         foreach ($classSeeds as $seed) {
             $classes->push(FitnessClass::query()->updateOrCreate([
                 'name' => $seed['name'],
                 'class_date' => $seed['date'],
+                'start_time' => $seed['start_time'],
             ], [
-                'trainer_id' => $trainer->id,
+                'trainer_id' => $trainers[$seed['trainer']]->id,
                 'description' => $seed['description'],
                 'class_type' => $seed['class_type'],
-                'capacity' => 12,
-                'location' => $seed['location'],
-                'is_recurring' => $seed['is_recurring'],
-                'recurring_days' => $seed['recurring_days'],
-                'recurrence_ends_at' => now()->addMonths(3)->toDateString(),
-                'start_time' => $seed['start_time'],
+                'capacity' => 20,
+                'location' => 'Akhwat Gym Studio',
+                'is_recurring' => true,
+                'recurring_days' => [$seed['day']],
+                'recurrence_ends_at' => null,
                 'end_time' => $seed['end_time'],
                 'is_active' => true,
                 'allow_drop_in' => true,
-                'drop_in_price' => 75000,
-                'trainer_addon_price' => 50000,
+                'drop_in_price' => $seed['drop_in_price'],
+                'trainer_addon_price' => 0,
             ]));
         }
 
-        $upcomingClass = $classes->firstWhere('name', 'Pilates Pagi');
+        $upcomingClass = $classes->firstWhere('name', 'Zumba Gold');
         if ($upcomingClass !== null) {
             ClassBooking::query()->updateOrCreate([
                 'member_id' => $member->id,
@@ -269,6 +140,380 @@ class DatabaseSeeder extends Seeder
 
         $this->seedOrder($member, $products);
         $this->seedNotifications($member);
+    }
+
+    /**
+     * @return array<string, Trainer>
+     */
+    private function seedAkhwatGymTrainers(): array
+    {
+        $trainerSeeds = [
+            'Zin Leila' => ['email' => 'leila@fitnessakhwat.test', 'specialization' => 'Zumba, Zumba Gold'],
+            'Teh Wati' => ['email' => 'wati@fitnessakhwat.test', 'specialization' => 'Yoga, Prenatal Yoga'],
+            'Pro Lia' => ['email' => 'lia@fitnessakhwat.test', 'specialization' => 'Poundfit'],
+            'Teh Novi' => ['email' => 'novi@fitnessakhwat.test', 'specialization' => 'Bomiya'],
+            'Teh Uchie' => ['email' => 'uchie@fitnessakhwat.test', 'specialization' => 'Fitdance'],
+            'Teh Febby' => ['email' => 'febby@fitnessakhwat.test', 'specialization' => 'Aeromix'],
+            'Zin Dewi' => ['email' => 'dewi@fitnessakhwat.test', 'specialization' => 'Zumba'],
+            'Zin Gita' => ['email' => 'gita@fitnessakhwat.test', 'specialization' => 'Zumba'],
+        ];
+
+        $trainers = [];
+
+        foreach ($trainerSeeds as $name => $seed) {
+            $user = User::query()->updateOrCreate(
+                ['email' => $seed['email']],
+                [
+                    'name' => $name,
+                    'phone' => null,
+                    'password' => Hash::make(DemoUserSeeder::PASSWORD),
+                ],
+            );
+
+            if (method_exists($user, 'assignRole')) {
+                $user->assignRole('Trainer');
+            }
+
+            $trainers[$name] = Trainer::query()->updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'specialization' => $seed['specialization'],
+                    'bio' => "{$name} adalah instruktur Akhwat Gym untuk kelas {$seed['specialization']}.",
+                    'is_active' => true,
+                ],
+            );
+        }
+
+        return $trainers;
+    }
+
+    private function seedAkhwatGymPackages(): MembershipPackage
+    {
+        $classPackages = [
+            [
+                'name' => 'Member All Class 4x',
+                'description' => 'Paket all class 4x per bulan. Tidak termasuk Gym Class dan Yoga.',
+                'package_type' => 'membership',
+                'billing_cycle' => 'monthly',
+                'includes_personal_trainer' => false,
+                'visit_limit' => 4,
+                'price' => 130000,
+                'allowed_class_types' => ['zumba', 'zumba_gold', 'aerobic', 'aeromix', 'fitdance', 'bomiya', 'poundfit'],
+            ],
+            [
+                'name' => 'Member All Class 8x',
+                'description' => 'Paket all class 8x per bulan. Tidak termasuk Gym Class dan Yoga.',
+                'package_type' => 'membership',
+                'billing_cycle' => 'monthly',
+                'includes_personal_trainer' => false,
+                'visit_limit' => 8,
+                'price' => 260000,
+                'allowed_class_types' => ['zumba', 'zumba_gold', 'aerobic', 'aeromix', 'fitdance', 'bomiya', 'poundfit'],
+            ],
+            [
+                'name' => 'Gym Visit',
+                'description' => 'Sekali datang untuk fasilitas gym.',
+                'package_type' => 'one_time',
+                'billing_cycle' => 'one_time',
+                'includes_personal_trainer' => false,
+                'visit_limit' => 1,
+                'price' => 32500,
+                'allowed_class_types' => ['gym'],
+            ],
+            [
+                'name' => 'Gym Member',
+                'description' => 'Membership gym bulanan.',
+                'package_type' => 'membership',
+                'billing_cycle' => 'monthly',
+                'includes_personal_trainer' => false,
+                'visit_limit' => null,
+                'price' => 215000,
+                'allowed_class_types' => ['gym'],
+            ],
+            [
+                'name' => 'Personal Trainer Visit',
+                'description' => 'Sekali sesi personal trainer.',
+                'package_type' => 'one_time',
+                'billing_cycle' => 'one_time',
+                'includes_personal_trainer' => true,
+                'visit_limit' => 1,
+                'price' => 80000,
+                'allowed_class_types' => ['personal_trainer'],
+            ],
+            [
+                'name' => 'Personal Trainer Member',
+                'description' => 'Membership personal trainer bulanan.',
+                'package_type' => 'membership',
+                'billing_cycle' => 'monthly',
+                'includes_personal_trainer' => true,
+                'visit_limit' => null,
+                'price' => 445000,
+                'allowed_class_types' => ['personal_trainer'],
+            ],
+            [
+                'name' => 'Zumba Visit',
+                'description' => 'Sekali datang untuk kelas Zumba atau Zumba Gold.',
+                'package_type' => 'one_time',
+                'billing_cycle' => 'one_time',
+                'includes_personal_trainer' => false,
+                'visit_limit' => 1,
+                'price' => 35000,
+                'allowed_class_types' => ['zumba', 'zumba_gold'],
+            ],
+            [
+                'name' => 'Zumba Member 4x',
+                'description' => 'Paket Zumba 4x per bulan.',
+                'package_type' => 'membership',
+                'billing_cycle' => 'monthly',
+                'includes_personal_trainer' => false,
+                'visit_limit' => 4,
+                'price' => 120000,
+                'allowed_class_types' => ['zumba', 'zumba_gold'],
+            ],
+            [
+                'name' => 'Zumba Member 8x',
+                'description' => 'Paket Zumba 8x per bulan.',
+                'package_type' => 'membership',
+                'billing_cycle' => 'monthly',
+                'includes_personal_trainer' => false,
+                'visit_limit' => 8,
+                'price' => 230000,
+                'allowed_class_types' => ['zumba', 'zumba_gold'],
+            ],
+            [
+                'name' => 'Aerobic Visit',
+                'description' => 'Sekali datang untuk kelas Aerobic atau Aeromix.',
+                'package_type' => 'one_time',
+                'billing_cycle' => 'one_time',
+                'includes_personal_trainer' => false,
+                'visit_limit' => 1,
+                'price' => 32500,
+                'allowed_class_types' => ['aerobic', 'aeromix'],
+            ],
+            [
+                'name' => 'Aerobic Member 4x',
+                'description' => 'Paket Aerobic/Aeromix 4x per bulan.',
+                'package_type' => 'membership',
+                'billing_cycle' => 'monthly',
+                'includes_personal_trainer' => false,
+                'visit_limit' => 4,
+                'price' => 120000,
+                'allowed_class_types' => ['aerobic', 'aeromix'],
+            ],
+            [
+                'name' => 'Aerobic Member 8x',
+                'description' => 'Paket Aerobic/Aeromix 8x per bulan.',
+                'package_type' => 'membership',
+                'billing_cycle' => 'monthly',
+                'includes_personal_trainer' => false,
+                'visit_limit' => 8,
+                'price' => 230000,
+                'allowed_class_types' => ['aerobic', 'aeromix'],
+            ],
+            [
+                'name' => 'Fitdance & Bomiya Visit',
+                'description' => 'Sekali datang untuk kelas Fitdance atau Bomiya.',
+                'package_type' => 'one_time',
+                'billing_cycle' => 'one_time',
+                'includes_personal_trainer' => false,
+                'visit_limit' => 1,
+                'price' => 37500,
+                'allowed_class_types' => ['fitdance', 'bomiya'],
+            ],
+            [
+                'name' => 'Fitdance & Bomiya Member 4x',
+                'description' => 'Paket Fitdance/Bomiya 4x per bulan.',
+                'package_type' => 'membership',
+                'billing_cycle' => 'monthly',
+                'includes_personal_trainer' => false,
+                'visit_limit' => 4,
+                'price' => 130000,
+                'allowed_class_types' => ['fitdance', 'bomiya'],
+            ],
+            [
+                'name' => 'Fitdance & Bomiya Member 8x',
+                'description' => 'Paket Fitdance/Bomiya 8x per bulan.',
+                'package_type' => 'membership',
+                'billing_cycle' => 'monthly',
+                'includes_personal_trainer' => false,
+                'visit_limit' => 8,
+                'price' => 260000,
+                'allowed_class_types' => ['fitdance', 'bomiya'],
+            ],
+            [
+                'name' => 'Yoga Visit',
+                'description' => 'Sekali datang untuk kelas Yoga.',
+                'package_type' => 'one_time',
+                'billing_cycle' => 'one_time',
+                'includes_personal_trainer' => false,
+                'visit_limit' => 1,
+                'price' => 52500,
+                'allowed_class_types' => ['yoga', 'prenatal_yoga'],
+            ],
+            [
+                'name' => 'Yoga Member 4x',
+                'description' => 'Paket Yoga 4x per bulan.',
+                'package_type' => 'membership',
+                'billing_cycle' => 'monthly',
+                'includes_personal_trainer' => false,
+                'visit_limit' => 4,
+                'price' => 200000,
+                'allowed_class_types' => ['yoga', 'prenatal_yoga'],
+            ],
+            [
+                'name' => 'Poundfit Visit',
+                'description' => 'Sekali datang untuk kelas Poundfit.',
+                'package_type' => 'one_time',
+                'billing_cycle' => 'one_time',
+                'includes_personal_trainer' => false,
+                'visit_limit' => 1,
+                'price' => 50000,
+                'allowed_class_types' => ['poundfit'],
+            ],
+            [
+                'name' => 'Body Fat Check',
+                'description' => 'Cek body fat 2x per bulan.',
+                'package_type' => 'membership',
+                'billing_cycle' => 'monthly',
+                'includes_personal_trainer' => false,
+                'visit_limit' => 2,
+                'price' => 15000,
+                'allowed_class_types' => ['body_fat'],
+            ],
+            [
+                'name' => 'ADM New Member',
+                'description' => 'Biaya administrasi member baru.',
+                'package_type' => 'one_time',
+                'billing_cycle' => 'one_time',
+                'includes_personal_trainer' => false,
+                'visit_limit' => 1,
+                'price' => 15000,
+                'allowed_class_types' => [],
+            ],
+        ];
+
+        MembershipPackage::query()
+            ->whereIn('name', [
+                'Starter Bulanan',
+                'Personal Trainer Bulanan',
+                'Akhwat Tahunan',
+                'One-Time Visit',
+                'One-Time Visit + Personal Trainer',
+                'Komitmen Tiga Bulan',
+            ])
+            ->update(['is_active' => false]);
+
+        $starter = null;
+
+        foreach ($classPackages as $seed) {
+            $package = MembershipPackage::query()->updateOrCreate(
+                ['name' => $seed['name']],
+                [
+                    'description' => $seed['description'],
+                    'package_type' => $seed['package_type'],
+                    'billing_cycle' => $seed['billing_cycle'],
+                    'includes_personal_trainer' => $seed['includes_personal_trainer'],
+                    'has_visit_limit' => $seed['visit_limit'] !== null,
+                    'visit_limit' => $seed['visit_limit'],
+                    'allowed_class_types' => $seed['allowed_class_types'],
+                    'duration_days' => $seed['billing_cycle'] === 'one_time' ? 1 : 30,
+                    'price' => $seed['price'],
+                    'discount_percent' => 0,
+                    'original_price' => null,
+                    'is_active' => true,
+                ],
+            );
+
+            if ($seed['name'] === 'Member All Class 4x') {
+                $starter = $package;
+            }
+        }
+
+        return $starter ?? MembershipPackage::query()->where('name', 'Member All Class 4x')->firstOrFail();
+    }
+
+    private function seedAkhwatGymFacilities(): void
+    {
+        foreach ([
+            ['name' => 'Free WiFi', 'slug' => 'free-wifi', 'description' => 'Akhwat Gym menyediakan akses WiFi gratis untuk member.', 'icon' => 'wifi'],
+            ['name' => 'Hair Dryer', 'slug' => 'hair-dryer', 'description' => 'Hair dryer tersedia untuk digunakan setelah mandi atau latihan.', 'icon' => 'hair-dryer'],
+            ['name' => 'Water Heater', 'slug' => 'water-heater', 'description' => 'Kamar mandi dilengkapi water heater.', 'icon' => 'water-heater'],
+            ['name' => 'Kamar Mandi', 'slug' => 'kamar-mandi', 'description' => 'Akhwat Gym sediakan sabun dan sampo gratis.', 'icon' => 'shower'],
+            ['name' => 'Mushola', 'slug' => 'mushola', 'description' => 'Akhwat Gym sediakan mukena dan sejadah.', 'icon' => 'prayer-mat'],
+        ] as $index => $facility) {
+            Facility::query()->updateOrCreate(
+                ['slug' => $facility['slug']],
+                [
+                    'name' => $facility['name'],
+                    'description' => $facility['description'],
+                    'icon' => $facility['icon'],
+                    'sort_order' => $index + 1,
+                    'is_active' => true,
+                ],
+            );
+        }
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function akhwatGymScheduleSeeds(): array
+    {
+        $slots = [
+            ['day' => 'monday', 'time' => '08:00:00', 'name' => 'Zumba Gold', 'type' => 'zumba_gold', 'trainer' => 'Zin Leila', 'price' => 35000],
+            ['day' => 'monday', 'time' => '10:00:00', 'name' => 'Yoga', 'type' => 'yoga', 'trainer' => 'Teh Wati', 'price' => 52500],
+            ['day' => 'monday', 'time' => '16:15:00', 'name' => 'Poundfit', 'type' => 'poundfit', 'trainer' => 'Pro Lia', 'price' => 50000],
+            ['day' => 'tuesday', 'time' => '08:30:00', 'name' => 'Bomiya', 'type' => 'bomiya', 'trainer' => 'Teh Novi', 'price' => 37500],
+            ['day' => 'tuesday', 'time' => '10:15:00', 'name' => 'Fitdance', 'type' => 'fitdance', 'trainer' => 'Teh Uchie', 'price' => 37500],
+            ['day' => 'tuesday', 'time' => '16:15:00', 'name' => 'Zumba', 'type' => 'zumba', 'trainer' => 'Zin Leila', 'price' => 35000],
+            ['day' => 'tuesday', 'time' => '17:30:00', 'name' => 'Zumba', 'type' => 'zumba', 'trainer' => 'Zin Leila', 'price' => 35000],
+            ['day' => 'wednesday', 'time' => '08:30:00', 'name' => 'Aeromix', 'type' => 'aeromix', 'trainer' => 'Teh Febby', 'price' => 32500],
+            ['day' => 'wednesday', 'time' => '15:00:00', 'name' => 'Fitdance', 'type' => 'fitdance', 'trainer' => 'Teh Uchie', 'price' => 37500],
+            ['day' => 'wednesday', 'time' => '16:15:00', 'name' => 'Yoga', 'type' => 'yoga', 'trainer' => 'Teh Wati', 'price' => 52500],
+            ['day' => 'wednesday', 'time' => '17:30:00', 'name' => 'Zumba', 'type' => 'zumba', 'trainer' => 'Zin Dewi', 'price' => 35000],
+            ['day' => 'thursday', 'time' => '08:00:00', 'name' => 'Zumba Gold', 'type' => 'zumba_gold', 'trainer' => 'Zin Leila', 'price' => 35000],
+            ['day' => 'thursday', 'time' => '17:10:00', 'name' => 'Poundfit', 'type' => 'poundfit', 'trainer' => 'Pro Lia', 'price' => 50000],
+            ['day' => 'friday', 'time' => '08:30:00', 'name' => 'Bomiya', 'type' => 'bomiya', 'trainer' => 'Teh Novi', 'price' => 37500],
+            ['day' => 'friday', 'time' => '16:15:00', 'name' => 'Zumba', 'type' => 'zumba', 'trainer' => 'Zin Leila', 'price' => 35000],
+            ['day' => 'friday', 'time' => '17:30:00', 'name' => 'Zumba', 'type' => 'zumba', 'trainer' => 'Zin Leila', 'price' => 35000],
+            ['day' => 'saturday', 'time' => '07:15:00', 'name' => 'Zumba Gold', 'type' => 'zumba_gold', 'trainer' => 'Zin Leila', 'price' => 35000],
+            ['day' => 'saturday', 'time' => '08:15:00', 'name' => 'Zumba', 'type' => 'zumba', 'trainer' => 'Zin Leila', 'price' => 35000],
+            ['day' => 'saturday', 'time' => '10:00:00', 'name' => 'Zumba', 'type' => 'zumba', 'trainer' => 'Zin Gita', 'price' => 35000],
+            ['day' => 'saturday', 'time' => '15:00:00', 'name' => 'Yoga', 'type' => 'yoga', 'trainer' => 'Teh Wati', 'price' => 52500],
+            ['day' => 'saturday', 'time' => '16:30:00', 'name' => 'Zumba', 'type' => 'zumba', 'trainer' => 'Zin Dewi', 'price' => 35000],
+            ['day' => 'sunday', 'time' => '07:15:00', 'name' => 'Zumba', 'type' => 'zumba', 'trainer' => 'Zin Leila', 'price' => 35000],
+            ['day' => 'sunday', 'time' => '08:30:00', 'name' => 'Zumba', 'type' => 'zumba', 'trainer' => 'Zin Leila', 'price' => 35000],
+            ['day' => 'sunday', 'time' => '15:00:00', 'name' => 'Yoga', 'type' => 'yoga', 'trainer' => 'Teh Wati', 'price' => 52500],
+            ['day' => 'sunday', 'time' => '16:30:00', 'name' => 'Yoga Prenatal', 'type' => 'prenatal_yoga', 'trainer' => 'Teh Wati', 'price' => 52500],
+        ];
+
+        return array_map(function (array $slot): array {
+            return [
+                'day' => $slot['day'],
+                'date' => $this->firstScheduleDate($slot['day']),
+                'name' => $slot['name'],
+                'description' => "{$slot['name']} bersama {$slot['trainer']} sesuai jadwal resmi Akhwat Gym 2025.",
+                'class_type' => $slot['type'],
+                'trainer' => $slot['trainer'],
+                'start_time' => $slot['time'],
+                'end_time' => Carbon::createFromFormat('H:i:s', $slot['time'])->addHour()->format('H:i:s'),
+                'drop_in_price' => $slot['price'],
+            ];
+        }, $slots);
+    }
+
+    private function firstScheduleDate(string $day): string
+    {
+        return match ($day) {
+            'monday' => '2025-01-06',
+            'tuesday' => '2025-01-07',
+            'wednesday' => '2025-01-01',
+            'thursday' => '2025-01-02',
+            'friday' => '2025-01-03',
+            'saturday' => '2025-01-04',
+            'sunday' => '2025-01-05',
+            default => '2025-01-01',
+        };
     }
 
     /**

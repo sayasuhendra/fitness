@@ -29,10 +29,20 @@ class FitnessClassForm
                             ->label('Class Type')
                             ->options([
                                 'zumba' => 'Zumba',
+                                'zumba_gold' => 'Zumba Gold',
                                 'yoga' => 'Yoga',
+                                'prenatal_yoga' => 'Yoga Prenatal',
                                 'circuit_training' => 'Circuit Training',
                                 'pilates' => 'Pilates',
                                 'strength' => 'Strength',
+                                'aerobic' => 'Aerobic',
+                                'aeromix' => 'Aeromix',
+                                'fitdance' => 'Fitdance',
+                                'bomiya' => 'Bomiya',
+                                'poundfit' => 'Poundfit',
+                                'gym' => 'Gym',
+                                'personal_trainer' => 'Personal Trainer',
+                                'body_fat' => 'Body Fat',
                                 'general' => 'General',
                             ])
                             ->default('general')

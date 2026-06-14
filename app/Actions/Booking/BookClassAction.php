@@ -42,6 +42,10 @@ final class BookClassAction
                 if (! $membership->hasRemainingVisits()) {
                     throw ValidationException::withMessages(['membership' => 'Your membership visit limit has been used.']);
                 }
+
+                if (! $membership->package->allowsClassType($class->class_type)) {
+                    throw ValidationException::withMessages(['membership' => 'Your membership package does not include this class type.']);
+                }
             }
 
             if ($accessType === 'one_time' && ! $class->allow_drop_in) {

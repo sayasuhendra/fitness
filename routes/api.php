@@ -3,6 +3,7 @@
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClassController;
+use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
@@ -32,6 +33,8 @@ Route::prefix('v1')->group(function () {
         Route::post('classes/book', [ClassController::class, 'book']);
         Route::post('classes/cancel', [ClassController::class, 'cancel']);
         Route::get('classes/my-bookings', [ClassController::class, 'myBookings']);
+
+        Route::get('facilities', [FacilityController::class, 'index']);
 
         Route::get('attendance/history', [AttendanceController::class, 'history']);
         Route::get('attendance/qr-code', [AttendanceController::class, 'qrCode']);

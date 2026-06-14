@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\MembershipPackages\Schemas;
 
+use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -58,6 +59,25 @@ class MembershipPackageForm
                             ->numeric()
                             ->minValue(1)
                             ->visible(fn ($get): bool => (bool) $get('has_visit_limit')),
+                        CheckboxList::make('allowed_class_types')
+                            ->label('Included Class Types')
+                            ->helperText('Leave empty when this plan can be used for every class type.')
+                            ->options([
+                                'gym' => 'Gym',
+                                'personal_trainer' => 'Personal Trainer',
+                                'zumba' => 'Zumba',
+                                'zumba_gold' => 'Zumba Gold',
+                                'aerobic' => 'Aerobic',
+                                'aeromix' => 'Aeromix',
+                                'fitdance' => 'Fitdance',
+                                'bomiya' => 'Bomiya',
+                                'yoga' => 'Yoga',
+                                'prenatal_yoga' => 'Yoga Prenatal',
+                                'poundfit' => 'Poundfit',
+                                'body_fat' => 'Body Fat',
+                            ])
+                            ->columns(3)
+                            ->columnSpanFull(),
                         TextInput::make('duration_days')
                             ->numeric()
                             ->minValue(1)

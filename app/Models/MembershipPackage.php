@@ -22,6 +22,7 @@ class MembershipPackage extends Model
         'includes_personal_trainer',
         'has_visit_limit',
         'visit_limit',
+        'allowed_class_types',
         'duration_days',
         'price',
         'discount_percent',
@@ -34,6 +35,7 @@ class MembershipPackage extends Model
         return [
             'includes_personal_trainer' => 'boolean',
             'has_visit_limit' => 'boolean',
+            'allowed_class_types' => 'array',
             'price' => 'decimal:2',
             'original_price' => 'decimal:2',
             'is_active' => 'boolean',
@@ -52,5 +54,14 @@ class MembershipPackage extends Model
         }
 
         return "{$this->visit_limit} visit";
+    }
+
+    public function allowsClassType(string $classType): bool
+    {
+        if ($this->allowed_class_types === null || $this->allowed_class_types === []) {
+            return true;
+        }
+
+        return in_array($classType, $this->allowed_class_types, true);
     }
 }

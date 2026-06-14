@@ -33,6 +33,11 @@ class MembershipPackagesTable
                     ->label('Visits')
                     ->formatStateUsing(fn ($state, $record): string => $record->has_visit_limit ? "{$state} visits" : 'Unlimited')
                     ->badge(),
+                TextColumn::make('allowed_class_types')
+                    ->label('Class Types')
+                    ->formatStateUsing(fn ($state, $record): string => $record->allowed_class_types === null || $record->allowed_class_types === [] ? 'All' : implode(', ', $record->allowed_class_types))
+                    ->limit(40)
+                    ->toggleable(),
                 TextColumn::make('duration_days')
                     ->label('Days')
                     ->numeric(),

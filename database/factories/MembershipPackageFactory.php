@@ -20,6 +20,7 @@ class MembershipPackageFactory extends Factory
             'includes_personal_trainer' => false,
             'has_visit_limit' => false,
             'visit_limit' => null,
+            'allowed_class_types' => null,
             'duration_days' => $this->faker->randomElement([30, 90, 365]),
             'price' => $this->faker->numberBetween(150000, 2500000),
             'discount_percent' => 0,
