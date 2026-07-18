@@ -26,9 +26,9 @@ class MembershipPurchaseFactory extends Factory
             'includes_personal_trainer' => false,
             'visits_allowed' => null,
             'visits_used' => 0,
-            'payment_method' => 'midtrans',
+            'payment_method' => 'manual_transfer',
             'amount' => 350000,
-            'payment_reference' => 'MID-'.Str::upper(Str::random(12)),
+            'payment_reference' => 'MANUAL-'.Str::upper(Str::random(12)),
         ];
     }
 }

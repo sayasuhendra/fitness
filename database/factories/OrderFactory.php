@@ -16,10 +16,10 @@ class OrderFactory extends Factory
     {
         return [
             'member_id' => Member::factory(),
-            'status' => 'completed',
-            'payment_method' => 'midtrans',
+            'status' => 'paid',
+            'payment_method' => 'manual_transfer',
             'total_price' => 0,
-            'payment_reference' => 'MID-'.Str::upper(Str::random(12)),
+            'payment_reference' => 'MANUAL-'.Str::upper(Str::random(12)),
         ];
     }
 }

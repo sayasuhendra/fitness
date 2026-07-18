@@ -105,6 +105,7 @@ run_laravel_deploy_steps() {
     run_as_web "php artisan optimize:clear"
     run_as_web "php artisan storage:link || true"
     run_as_web "php artisan migrate --force"
+    run_as_web "php artisan db:seed --class=AdminRoleSeeder --force"
 
     if [[ "${RUN_SEEDERS}" == "true" ]]; then
         run_as_web "php artisan db:seed --force"

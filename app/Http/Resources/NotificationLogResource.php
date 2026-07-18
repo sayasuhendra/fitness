@@ -15,6 +15,8 @@ class NotificationLogResource extends JsonResource
             'id' => (string) $this->id,
             'title' => $this->data['title'] ?? 'Notification',
             'body' => $this->data['body'] ?? '',
+            'type' => $this->data['type'] ?? null,
+            'action_url' => $this->data['action_url'] ?? null,
             'created_at' => $this->created_at?->toISOString() ?? now()->toISOString(),
             'is_read' => $this->read_at !== null,
         ];

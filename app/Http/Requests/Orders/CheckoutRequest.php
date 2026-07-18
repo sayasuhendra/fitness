@@ -20,7 +20,7 @@ class CheckoutRequest extends FormRequest
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'integer', Rule::exists('products', 'id')],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
-            'payment_method' => ['required', 'string', Rule::in(['qris', 'bank_transfer', 'midtrans', 'cash'])],
+            'payment_method' => ['required', 'string', Rule::in(['qris', 'bank_transfer', 'cash'])],
         ];
     }
 }

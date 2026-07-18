@@ -18,7 +18,7 @@ class OrderController extends Controller
     public function index(Request $request): JsonResponse
     {
         $orders = $request->user()->member->orders()
-            ->with('items.product.category')
+            ->with(['items.product.category', 'paymentConfirmations'])
             ->latest()
             ->get();
 
@@ -32,14 +32,14 @@ class OrderController extends Controller
             paymentMethod: $request->validated('payment_method'),
         ));
 
-        return ApiResponder::success(new OrderResource($order), 'Order completed', 201);
+        return ApiResponder::success(new OrderResource($order->load('paymentConfirmations')), 'Order created. Please confirm your payment.', 201);
     }
 
     public function show(Request $request, Order $order): JsonResponse
     {
         abort_unless($order->member_id === $request->user()->member->id, 404);
 
-        return ApiResponder::success(new OrderResource($order->load('items.product.category')), 'Order retrieved');
+        return ApiResponder::success(new OrderResource($order->load(['items.product.category', 'paymentConfirmations'])), 'Order retrieved');
     }
 
     public function reorder(Request $request, Order $order): JsonResponse

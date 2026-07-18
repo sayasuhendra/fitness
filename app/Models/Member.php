@@ -47,6 +47,11 @@ class Member extends Model
         return $this->hasMany(Order::class);
     }
 
+    public function personalTrainerSessions(): HasMany
+    {
+        return $this->hasMany(PersonalTrainerSession::class);
+    }
+
     public function activeMembership(): ?MembershipPurchase
     {
         return $this->membershipPurchases()

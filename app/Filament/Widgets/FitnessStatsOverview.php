@@ -17,7 +17,7 @@ class FitnessStatsOverview extends StatsOverviewWidget
 {
     protected ?string $heading = 'Business Snapshot';
 
-    protected ?string $description = 'Live operational metrics for Fitness Akhwat.';
+    protected ?string $description = 'Ringkasan operasional Akhwat Gym.';
 
     protected function getStats(): array
     {

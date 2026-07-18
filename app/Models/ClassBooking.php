@@ -8,6 +8,7 @@ use Database\Factories\ClassBookingFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class ClassBooking extends Model
 {
@@ -17,6 +18,7 @@ class ClassBooking extends Model
     protected $fillable = [
         'member_id',
         'fitness_class_id',
+        'class_session_id',
         'booked_for_date',
         'status',
         'access_type',
@@ -47,5 +49,15 @@ class ClassBooking extends Model
     public function fitnessClass(): BelongsTo
     {
         return $this->belongsTo(FitnessClass::class);
+    }
+
+    public function classSession(): BelongsTo
+    {
+        return $this->belongsTo(ClassSession::class);
+    }
+
+    public function paymentConfirmations(): MorphMany
+    {
+        return $this->morphMany(PaymentConfirmation::class, 'payable');
     }
 }

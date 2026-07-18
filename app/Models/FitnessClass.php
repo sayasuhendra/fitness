@@ -59,6 +59,11 @@ class FitnessClass extends Model
         return $this->hasMany(ClassBooking::class);
     }
 
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(ClassSession::class);
+    }
+
     public function attendances(): HasMany
     {
         return $this->hasMany(Attendance::class);

@@ -1,9 +1,9 @@
 openapi: 3.1.0
 info:
-  title: Fitness Akhwat API
+  title: Akhwat Gym API
   version: 1.0.0
 servers:
-  - url: https://api.fitnessakhwat.com/api/v1
+  - url: https://fitness.dbaik.com/api/v1
 paths:
   /auth/register:
     post:
@@ -27,6 +27,52 @@ paths:
       summary: Login member
       responses:
         "200": { description: Sanctum token issued }
+  /auth/logout:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Logout current member token
+      responses:
+        "200": { description: Logged out }
+  /auth/me:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Return current authenticated user profile and active membership capability
+      responses:
+        "200": { description: Current user returned }
+  /auth/refresh:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Issue a fresh Sanctum token
+      responses:
+        "200": { description: Token refreshed }
+  /auth/forgot-password:
+    post:
+      summary: Request password reset instructions
+      responses:
+        "200": { description: Reset link sent if email exists }
+  /auth/reset-password:
+    post:
+      summary: Reset password using token
+      responses:
+        "200": { description: Password reset }
+  /auth/profile:
+    put:
+      security: [{ bearerAuth: [] }]
+      summary: Update current member profile
+      responses:
+        "200": { description: Profile updated }
+  /profile:
+    put:
+      security: [{ bearerAuth: [] }]
+      summary: Update profile through profile endpoint
+      responses:
+        "200": { description: Profile updated }
+  /profile/change-password:
+    put:
+      security: [{ bearerAuth: [] }]
+      summary: Change current password
+      responses:
+        "200": { description: Password changed }
   /memberships:
     get:
       security: [{ bearerAuth: [] }]
@@ -36,9 +82,9 @@ paths:
   /memberships/purchase:
     post:
       security: [{ bearerAuth: [] }]
-      summary: Purchase and activate membership after successful Midtrans callback
+      summary: Create pending membership purchase for manual payment confirmation
       responses:
-        "201": { description: Membership activated }
+        "201": { description: Membership purchase created }
   /memberships/history:
     get:
       security: [{ bearerAuth: [] }]
@@ -68,24 +114,66 @@ paths:
       summary: Cancel a member booking
       responses:
         "200": { description: Booking cancelled }
+  /trainers:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: List active personal trainers
+      responses:
+        "200": { description: Trainers returned }
+  /personal-trainer-sessions:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: List member personal trainer sessions
+      responses:
+        "200": { description: Personal trainer sessions returned }
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Create personal trainer session from PT membership or one-time visit
+      responses:
+        "201": { description: Personal trainer session created }
+        "422": { description: PT membership or payment method is invalid }
   /attendance/qr-code:
     get:
       security: [{ bearerAuth: [] }]
       summary: Generate temporary QR payload for member check-in
       responses:
         "200": { description: QR payload returned }
+  /attendance/check-in:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Check in for gym visit, class attendance, or personal trainer session
+      responses:
+        "201": { description: Attendance created }
+        "422": { description: Check-in is invalid or duplicated }
   /attendance/history:
     get:
       security: [{ bearerAuth: [] }]
       summary: Member attendance history
       responses:
         "200": { description: Attendance history returned }
+  /facilities:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: List active gym facilities shown in mobile content
+      responses:
+        "200": { description: Facilities returned }
   /products:
     get:
       security: [{ bearerAuth: [] }]
       summary: List products by category and search query
       responses:
         "200": { description: Products returned }
+  /products/{product}:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Product detail
+      parameters:
+        - in: path
+          name: product
+          required: true
+          schema: { type: integer }
+      responses:
+        "200": { description: Product returned }
   /orders:
     get:
       security: [{ bearerAuth: [] }]
@@ -94,9 +182,75 @@ paths:
         "200": { description: Orders returned }
     post:
       security: [{ bearerAuth: [] }]
-      summary: Checkout cart and reduce stock after payment success
+      summary: Checkout cart as pending manual payment; stock reduces after admin approval
       responses:
-        "201": { description: Order completed }
+        "201": { description: Order created }
+  /orders/{order}:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Order detail
+      parameters:
+        - in: path
+          name: order
+          required: true
+          schema: { type: integer }
+      responses:
+        "200": { description: Order returned }
+  /orders/{order}/reorder:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Load a previous order for reorder
+      parameters:
+        - in: path
+          name: order
+          required: true
+          schema: { type: integer }
+      responses:
+        "200": { description: Previous order returned }
+  /payments/methods:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: List active QRIS and bank transfer payment instructions
+      responses:
+        "200": { description: Payment methods returned }
+  /payments/confirmations:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Submit manual payment confirmation with optional proof upload
+      responses:
+        "201": { description: Payment confirmation submitted }
+  /notifications:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: List member notifications
+      responses:
+        "200": { description: Notifications returned }
+  /notifications/fcm-token:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Register or refresh mobile Firebase Cloud Messaging token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required: [fcm_token]
+              properties:
+                fcm_token: { type: string }
+                platform: { type: string, enum: [android, ios, web] }
+      responses:
+        "200": { description: FCM token registered }
+  /notifications/{id}/read:
+    post:
+      security: [{ bearerAuth: [] }]
+      summary: Mark notification as read
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200": { description: Notification marked as read }
 components:
   securitySchemes:
     bearerAuth:

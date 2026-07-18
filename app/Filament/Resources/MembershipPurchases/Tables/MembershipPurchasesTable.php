@@ -65,17 +65,16 @@ class MembershipPurchasesTable
             ->filters([
                 SelectFilter::make('status')
                     ->options([
-                        'pending' => 'Pending',
-                        'active' => 'Active',
-                        'expired' => 'Expired',
-                        'cancelled' => 'Cancelled',
+                        'pending_payment' => 'Menunggu Pembayaran',
+                        'active' => 'Aktif',
+                        'expired' => 'Berakhir',
+                        'cancelled' => 'Dibatalkan',
                     ]),
                 SelectFilter::make('payment_method')
                     ->options([
                         'qris' => 'QRIS',
-                        'bank_transfer' => 'Bank Transfer',
-                        'midtrans' => 'Midtrans',
-                        'cash' => 'Cash',
+                        'bank_transfer' => 'Transfer Bank',
+                        'cash' => 'Tunai',
                     ]),
             ])
             ->recordActions([

@@ -19,6 +19,9 @@ class OrderResource extends JsonResource
             ])->values(),
             'total_price' => (float) $this->total_price,
             'status' => $this->status,
+            'payment_method' => $this->payment_method,
+            'payment_reference' => $this->payment_reference,
+            'payment_confirmations' => PaymentConfirmationResource::collection($this->whenLoaded('paymentConfirmations')),
             'created_at' => $this->created_at->toISOString(),
         ];
     }

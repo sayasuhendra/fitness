@@ -18,10 +18,11 @@ class BookClassRequest extends FormRequest
     {
         return [
             'class_id' => ['required', 'integer', Rule::exists('fitness_classes', 'id')],
+            'class_session_id' => ['nullable', 'integer', Rule::exists('class_sessions', 'id')],
             'booked_for_date' => ['nullable', 'date'],
             'access_type' => ['nullable', 'string', Rule::in(['membership', 'one_time'])],
             'personal_trainer_requested' => ['nullable', 'boolean'],
-            'payment_method' => ['nullable', 'string', Rule::in(['qris', 'bank_transfer', 'midtrans', 'cash'])],
+            'payment_method' => ['nullable', 'string', Rule::in(['qris', 'bank_transfer', 'cash'])],
         ];
     }
 }

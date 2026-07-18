@@ -6,6 +6,7 @@ namespace Database\Seeders;
 
 use App\Models\Attendance;
 use App\Models\ClassBooking;
+use App\Models\ClassSession;
 use App\Models\Facility;
 use App\Models\FitnessClass;
 use App\Models\Member;
@@ -13,6 +14,7 @@ use App\Models\MembershipPackage;
 use App\Models\MembershipPurchase;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\PersonalTrainerSession;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Trainer;
@@ -33,15 +35,17 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(AdminRoleSeeder::class);
         $this->call(DemoUserSeeder::class);
+        $this->call(AkhwatGymPackageScheduleSeeder::class);
+        $this->call(ManualPaymentSeeder::class);
 
         $member = Member::query()->where('member_code', 'MBR000001')->firstOrFail();
-        $trainers = $this->seedAkhwatGymTrainers();
-        $starter = $this->seedAkhwatGymPackages();
+        $starter = MembershipPackage::query()->where('name', 'Member All Class 4x')->firstOrFail();
         $this->seedAkhwatGymFacilities();
 
         MembershipPurchase::query()->updateOrCreate([
-            'payment_reference' => 'MID-SEED-MEMBER',
+            'payment_reference' => 'MANUAL-SEED-MEMBER',
         ], [
             'member_id' => $member->id,
             'membership_package_id' => $starter->id,
@@ -51,59 +55,83 @@ class DatabaseSeeder extends Seeder
             'includes_personal_trainer' => $starter->includes_personal_trainer,
             'visits_allowed' => $starter->visit_limit,
             'visits_used' => 0,
-            'payment_method' => 'midtrans',
+            'payment_method' => 'manual_transfer',
             'amount' => $starter->price,
-            'payment_reference' => 'MID-SEED-MEMBER',
+            'payment_reference' => 'MANUAL-SEED-MEMBER',
         ]);
 
-        $classSeeds = $this->akhwatGymScheduleSeeds();
-        FitnessClass::query()
-            ->whereIn('name', [
-                'Pilates Pagi',
-                'Strength untuk Pemula',
-                'Yoga Flow',
-                'Zumba Akhwat',
-                'Circuit Training',
-                'Mobility Recovery',
-            ])
-            ->update(['is_active' => false]);
+        $classes = FitnessClass::query()->where('is_active', true)->get();
+        foreach ($classes as $class) {
+            $session = ClassSession::query()
+                ->where('fitness_class_id', $class->id)
+                ->whereDate('session_date', $class->class_date->toDateString())
+                ->where('start_time', $class->start_time)
+                ->first() ?? new ClassSession([
+                    'fitness_class_id' => $class->id,
+                    'session_date' => $class->class_date->toDateString(),
+                    'start_time' => $class->start_time,
+                ]);
 
-        $classes = new Collection;
-        foreach ($classSeeds as $seed) {
-            $classes->push(FitnessClass::query()->updateOrCreate([
-                'name' => $seed['name'],
-                'class_date' => $seed['date'],
-                'start_time' => $seed['start_time'],
-            ], [
-                'trainer_id' => $trainers[$seed['trainer']]->id,
-                'description' => $seed['description'],
-                'class_type' => $seed['class_type'],
-                'capacity' => 20,
-                'location' => 'Akhwat Gym Studio',
-                'is_recurring' => true,
-                'recurring_days' => [$seed['day']],
-                'recurrence_ends_at' => null,
-                'end_time' => $seed['end_time'],
-                'is_active' => true,
-                'allow_drop_in' => true,
-                'drop_in_price' => $seed['drop_in_price'],
-                'trainer_addon_price' => 0,
-            ]));
+            $session->fill([
+                'trainer_id' => $class->trainer_id,
+                'end_time' => $class->end_time,
+                'capacity' => $class->capacity,
+                'status' => 'scheduled',
+            ]);
+
+            $session->save();
         }
 
         $upcomingClass = $classes->firstWhere('name', 'Zumba Gold');
         if ($upcomingClass !== null) {
-            ClassBooking::query()->updateOrCreate([
-                'member_id' => $member->id,
-                'fitness_class_id' => $upcomingClass->id,
-                'booked_for_date' => $upcomingClass->class_date->toDateString(),
-            ], [
+            $upcomingSession = ClassSession::query()
+                ->where('fitness_class_id', $upcomingClass->id)
+                ->whereDate('session_date', $upcomingClass->class_date->toDateString())
+                ->where('start_time', $upcomingClass->start_time)
+                ->first();
+            $booking = ClassBooking::query()
+                ->where('member_id', $member->id)
+                ->where('fitness_class_id', $upcomingClass->id)
+                ->whereDate('booked_for_date', $upcomingClass->class_date->toDateString())
+                ->first() ?? new ClassBooking([
+                    'member_id' => $member->id,
+                    'fitness_class_id' => $upcomingClass->id,
+                    'class_session_id' => $upcomingSession?->id,
+                    'booked_for_date' => $upcomingClass->class_date->toDateString(),
+                ]);
+
+            $booking->fill([
                 'status' => 'confirmed',
                 'access_type' => 'membership',
+                'class_session_id' => $upcomingSession?->id,
                 'personal_trainer_requested' => false,
                 'amount' => 0,
                 'booked_at' => now()->subHours(3),
                 'cancelled_at' => null,
+            ]);
+
+            $booking->save();
+        }
+
+        $ptTrainer = Trainer::query()
+            ->whereHas('user', fn ($query) => $query->where('email', 'trainer@akhwatgym.test'))
+            ->first() ?? Trainer::query()->first();
+
+        if ($ptTrainer !== null) {
+            PersonalTrainerSession::query()->updateOrCreate([
+                'member_id' => $member->id,
+                'trainer_id' => $ptTrainer->id,
+                'scheduled_at' => now()->addDays(2)->setTime(9, 0),
+            ], [
+                'membership_purchase_id' => null,
+                'duration_minutes' => 60,
+                'status' => 'scheduled',
+                'access_type' => 'membership',
+                'amount' => 0,
+                'payment_method' => null,
+                'payment_reference' => null,
+                'member_note' => 'Demo jadwal personal trainer untuk member.',
+                'admin_note' => null,
             ]);
         }
 
@@ -114,7 +142,7 @@ class DatabaseSeeder extends Seeder
         ], [
             'check_in_time' => now()->subDay(),
             'status' => 'present',
-            'location' => 'Fitness Akhwat Studio',
+            'location' => 'Akhwat Gym Studio',
         ]);
 
         $this->deactivateLegacyDemoProducts();
@@ -148,14 +176,14 @@ class DatabaseSeeder extends Seeder
     private function seedAkhwatGymTrainers(): array
     {
         $trainerSeeds = [
-            'Zin Leila' => ['email' => 'leila@fitnessakhwat.test', 'specialization' => 'Zumba, Zumba Gold'],
-            'Teh Wati' => ['email' => 'wati@fitnessakhwat.test', 'specialization' => 'Yoga, Prenatal Yoga'],
-            'Pro Lia' => ['email' => 'lia@fitnessakhwat.test', 'specialization' => 'Poundfit'],
-            'Teh Novi' => ['email' => 'novi@fitnessakhwat.test', 'specialization' => 'Bomiya'],
-            'Teh Uchie' => ['email' => 'uchie@fitnessakhwat.test', 'specialization' => 'Fitdance'],
-            'Teh Febby' => ['email' => 'febby@fitnessakhwat.test', 'specialization' => 'Aeromix'],
-            'Zin Dewi' => ['email' => 'dewi@fitnessakhwat.test', 'specialization' => 'Zumba'],
-            'Zin Gita' => ['email' => 'gita@fitnessakhwat.test', 'specialization' => 'Zumba'],
+            'Zin Leila' => ['email' => 'leila@akhwatgym.test', 'specialization' => 'Zumba, Zumba Gold'],
+            'Teh Wati' => ['email' => 'wati@akhwatgym.test', 'specialization' => 'Yoga, Prenatal Yoga'],
+            'Pro Lia' => ['email' => 'lia@akhwatgym.test', 'specialization' => 'Poundfit'],
+            'Teh Novi' => ['email' => 'novi@akhwatgym.test', 'specialization' => 'Bomiya'],
+            'Teh Uchie' => ['email' => 'uchie@akhwatgym.test', 'specialization' => 'Fitdance'],
+            'Teh Febby' => ['email' => 'febby@akhwatgym.test', 'specialization' => 'Aeromix'],
+            'Zin Dewi' => ['email' => 'dewi@akhwatgym.test', 'specialization' => 'Zumba'],
+            'Zin Gita' => ['email' => 'gita@akhwatgym.test', 'specialization' => 'Zumba'],
         ];
 
         $trainers = [];
@@ -589,13 +617,13 @@ class DatabaseSeeder extends Seeder
         }
 
         $order = Order::query()->updateOrCreate([
-            'payment_reference' => 'MID-SEED-ORDER',
+            'payment_reference' => 'MANUAL-SEED-ORDER',
         ], [
             'member_id' => $member->id,
             'status' => 'completed',
-            'payment_method' => 'midtrans',
+            'payment_method' => 'manual_transfer',
             'total_price' => ((float) $firstProduct->price * 2) + (float) $secondProduct->price,
-            'payment_reference' => 'MID-SEED-ORDER',
+            'payment_reference' => 'MANUAL-SEED-ORDER',
         ]);
 
         foreach ([

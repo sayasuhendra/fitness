@@ -13,6 +13,7 @@ class AttendanceResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'attendance_type' => $this->attendance_type,
             'check_in_time' => $this->check_in_time->toISOString(),
             'status' => $this->status,
             'class_name' => $this->fitnessClass?->name,

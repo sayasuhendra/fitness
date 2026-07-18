@@ -1,4 +1,4 @@
-api.fitnessakhwat.com {
+fitness.dbaik.com {
 	root * /var/www/fitness/public
 	encode zstd gzip
 	php_fastcgi unix//run/php/php8.4-fpm.sock

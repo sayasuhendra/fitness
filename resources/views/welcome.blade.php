@@ -3,9 +3,9 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="Fitness Akhwat membantu owner dan admin mengelola member, jadwal kelas, kehadiran, toko, pembayaran, dan laporan operasional dengan lebih rapi.">
+        <meta name="description" content="Akhwat Gym membantu owner dan admin mengelola member, jadwal kelas, kehadiran, toko, pembayaran, dan laporan operasional dengan lebih rapi.">
 
-        <title>Fitness Akhwat</title>
+        <title>Akhwat Gym</title>
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
@@ -15,9 +15,9 @@
                 <nav class="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8" aria-label="Navigasi utama">
                     <a href="{{ url('/') }}" class="flex items-center gap-3 text-white">
                         <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-white/15 ring-1 ring-white/30 backdrop-blur">
-                            <span class="text-lg font-bold">FA</span>
+                            <span class="text-lg font-bold">AG</span>
                         </span>
-                        <span class="text-sm font-semibold uppercase tracking-[0.18em]">Fitness Akhwat</span>
+                        <span class="text-sm font-semibold uppercase tracking-[0.18em]">Akhwat Gym</span>
                     </a>
 
                     <div class="hidden items-center gap-8 text-sm font-medium text-white/85 md:flex">
@@ -45,7 +45,7 @@
                     <div class="relative z-10 mx-auto flex min-h-screen max-w-7xl items-center px-5 pb-20 pt-32 sm:px-8">
                         <div class="max-w-3xl text-white">
                             <p class="mb-5 inline-flex rounded-lg border border-white/20 bg-white/10 px-3 py-1 text-sm font-medium text-emerald-50 backdrop-blur">
-                                Ruang kerja yang lebih rapi untuk tim Fitness Akhwat
+                                Ruang kerja yang lebih rapi untuk tim Akhwat Gym
                             </p>
                             <h1 class="max-w-3xl text-5xl font-bold leading-tight sm:text-6xl lg:text-7xl">
                                 Kelola studio dengan tenang, rapi, dan percaya diri.
@@ -89,7 +89,7 @@
                                 Aktivitas harian jadi lebih tertata dari awal sampai akhir.
                             </h2>
                             <p class="mt-5 text-base leading-8 text-zinc-600">
-                                Fitness Akhwat membantu tim menjaga alur kerja tetap rapi, mulai dari member baru, pemilihan paket, jadwal kelas, kehadiran, hingga pembelian produk di studio.
+                                Akhwat Gym membantu tim menjaga alur kerja tetap rapi, mulai dari member baru, pemilihan paket, jadwal kelas, kehadiran, hingga pembelian produk di studio.
                             </p>
                         </div>
 
@@ -203,7 +203,7 @@
 
             <footer class="bg-white py-8">
                 <div class="mx-auto flex max-w-7xl flex-col gap-3 px-5 text-sm text-zinc-500 sm:flex-row sm:items-center sm:justify-between sm:px-8">
-                    <p>&copy; {{ now()->year }} Fitness Akhwat. Sistem pendukung operasional studio yang rapi dan aman.</p>
+                    <p>&copy; {{ now()->year }} Akhwat Gym. Sistem pendukung operasional studio yang rapi dan aman.</p>
                     <a href="{{ url('/admin') }}" class="font-semibold text-emerald-700 hover:text-emerald-800">Masuk Admin</a>
                 </div>
             </footer>

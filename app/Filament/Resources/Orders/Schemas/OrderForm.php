@@ -13,8 +13,8 @@ class OrderForm
     {
         return $schema
             ->components([
-                Section::make('Order Summary')
-                    ->description('Store order status and payment audit data.')
+                Section::make('Ringkasan Pesanan')
+                    ->description('Status pesanan dan pembayaran manual.')
                     ->schema([
                         Select::make('member_id')
                             ->label('Member')
@@ -25,18 +25,18 @@ class OrderForm
                             ->required(),
                         Select::make('status')
                             ->options([
-                                'pending' => 'Pending',
-                                'completed' => 'Completed',
-                                'cancelled' => 'Cancelled',
+                                'pending_payment' => 'Menunggu Pembayaran',
+                                'paid' => 'Sudah Dibayar',
+                                'completed' => 'Selesai',
+                                'cancelled' => 'Dibatalkan',
                             ])
-                            ->default('pending')
+                            ->default('pending_payment')
                             ->required(),
                         Select::make('payment_method')
                             ->options([
                                 'qris' => 'QRIS',
-                                'bank_transfer' => 'Bank Transfer',
-                                'midtrans' => 'Midtrans',
-                                'cash' => 'Cash',
+                                'bank_transfer' => 'Transfer Bank',
+                                'cash' => 'Tunai',
                             ])
                             ->required(),
                         TextInput::make('total_price')

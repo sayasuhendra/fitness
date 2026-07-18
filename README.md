@@ -1,58 +1,102 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Akhwat Gym Backend
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Backend Laravel untuk aplikasi member, admin panel Filament, pembayaran manual QRIS/transfer bank, jadwal kelas, personal trainer, toko, absensi, dan notifikasi.
 
-## About Laravel
-
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
-
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Setup Lokal
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate --seed
+php artisan storage:link
+npm install
+npm run build
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Demo login hasil seeder:
 
-## Contributing
+- Owner: `owner@akhwatgym.test` / `password123`
+- Super admin: `admin@akhwatgym.test` / `password123`
+- Admin lokasi: `admin.lokasi@akhwatgym.test` / `password123`
+- Member: `member@akhwatgym.test` / `password123`
+- Trainer: `trainer@akhwatgym.test` / `password123`
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Konfigurasi Penting
 
-## Code of Conduct
+```env
+APP_NAME="Akhwat Gym"
+APP_URL=https://fitness.dbaik.com
+QUEUE_CONNECTION=database
+FILESYSTEM_DISK=public
+AKHWAT_GYM_WHATSAPP_NUMBER=6285794132886
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Jalankan worker queue di server:
 
-## Security Vulnerabilities
+```bash
+php artisan queue:work --tries=3 --timeout=90
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Firebase Push Notification
 
-## License
+Mobile app mengirim FCM token ke endpoint:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```http
+POST /api/v1/notifications/fcm-token
+```
+
+Backend menyimpan token di tabel `device_tokens`, membuat inbox notifikasi di tabel `notifications`, dan akan mengirim push Firebase jika credential server sudah diaktifkan.
+
+Langkah setup Firebase:
+
+1. Buat project di Firebase Console.
+2. Tambahkan aplikasi Android dan iOS untuk mobile app.
+3. Download `google-services.json` ke `fitness-mobile/android/app/google-services.json`.
+4. Download `GoogleService-Info.plist` ke `fitness-mobile/ios/Runner/GoogleService-Info.plist`.
+5. Buka Google Cloud Console untuk project Firebase tersebut.
+6. Buat service account dengan akses Firebase Cloud Messaging.
+7. Generate private key JSON.
+8. Simpan JSON service account sebagai satu baris env di server.
+
+Contoh env backend:
+
+```env
+FIREBASE_PUSH_ENABLED=true
+FIREBASE_PROJECT_ID=akhwat-gym
+FIREBASE_SERVICE_ACCOUNT_JSON='{"type":"service_account","project_id":"akhwat-gym","private_key_id":"...","private_key":"-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n","client_email":"firebase-adminsdk@akhwat-gym.iam.gserviceaccount.com","token_uri":"https://oauth2.googleapis.com/token"}'
+```
+
+Setelah env berubah:
+
+```bash
+php artisan config:clear
+php artisan optimize
+```
+
+## Pembayaran Manual
+
+Owner/admin mengelola rekening bank dan QRIS dari admin panel. Member memilih QRIS atau transfer, upload bukti pembayaran, lalu admin approve/reject dari menu konfirmasi pembayaran.
+
+Status aktif setelah approval:
+
+- Membership menjadi `active`.
+- Order menjadi `paid`, lalu stok produk berkurang.
+- Booking sekali datang menjadi `confirmed`.
+- Sesi personal trainer sekali datang menjadi `scheduled`.
+
+## Dokumentasi API
+
+OpenAPI ada di:
+
+```text
+docs/openapi.yaml
+```
+
+## Verifikasi
+
+```bash
+./vendor/bin/pint
+php artisan test
+```

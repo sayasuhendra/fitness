@@ -32,12 +32,12 @@ class MembershipPurchaseForm
                             ->required(),
                         Select::make('status')
                             ->options([
-                                'pending' => 'Pending',
-                                'active' => 'Active',
-                                'expired' => 'Expired',
-                                'cancelled' => 'Cancelled',
+                                'pending_payment' => 'Menunggu Pembayaran',
+                                'active' => 'Aktif',
+                                'expired' => 'Berakhir',
+                                'cancelled' => 'Dibatalkan',
                             ])
-                            ->default('pending')
+                            ->default('pending_payment')
                             ->required(),
                     ])
                     ->columns(3),
@@ -46,9 +46,8 @@ class MembershipPurchaseForm
                         Select::make('payment_method')
                             ->options([
                                 'qris' => 'QRIS',
-                                'bank_transfer' => 'Bank Transfer',
-                                'midtrans' => 'Midtrans',
-                                'cash' => 'Cash',
+                                'bank_transfer' => 'Transfer Bank',
+                                'cash' => 'Tunai',
                             ])
                             ->required(),
                         TextInput::make('amount')

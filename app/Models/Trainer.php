@@ -31,4 +31,9 @@ class Trainer extends Model
     {
         return $this->hasMany(FitnessClass::class);
     }
+
+    public function personalTrainerSessions(): HasMany
+    {
+        return $this->hasMany(PersonalTrainerSession::class);
+    }
 }

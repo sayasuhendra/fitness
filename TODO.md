@@ -85,14 +85,16 @@ Sprint 7 - Payment
 
 Backend
 
-- Midtrans Integration
-- Payment Callback
-- Payment Status
+- Bank Account CRUD
+- QRIS Upload
+- Manual Payment Confirmation
+- Admin Payment Verification
 
 Flutter
 
 - Payment Screen
-- Payment Status Screen
+- Upload Payment Proof
+- WhatsApp Payment Confirmation
 
 Sprint 8 - Notifications
 

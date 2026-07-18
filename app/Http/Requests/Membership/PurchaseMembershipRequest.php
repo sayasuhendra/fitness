@@ -18,7 +18,7 @@ class PurchaseMembershipRequest extends FormRequest
     {
         return [
             'package_id' => ['required', 'integer', Rule::exists('membership_packages', 'id')],
-            'payment_method' => ['required', 'string', Rule::in(['qris', 'bank_transfer', 'midtrans', 'cash'])],
+            'payment_method' => ['required', 'string', Rule::in(['qris', 'bank_transfer', 'cash'])],
             'billing_cycle' => ['nullable', 'string', Rule::in(['monthly', 'yearly', 'one_time'])],
         ];
     }

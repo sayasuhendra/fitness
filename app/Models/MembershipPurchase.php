@@ -8,6 +8,7 @@ use Database\Factories\MembershipPurchaseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class MembershipPurchase extends Model
 {
@@ -46,6 +47,11 @@ class MembershipPurchase extends Model
     public function package(): BelongsTo
     {
         return $this->belongsTo(MembershipPackage::class, 'membership_package_id');
+    }
+
+    public function paymentConfirmations(): MorphMany
+    {
+        return $this->morphMany(PaymentConfirmation::class, 'payable');
     }
 
     public function hasRemainingVisits(): bool

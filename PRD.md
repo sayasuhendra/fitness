@@ -1,6 +1,6 @@
 PRD.md
 
-Fitness Akhwat App - MVP Fase 1
+Akhwat Gym App - MVP Fase 1
 
 Product Vision
 
@@ -221,7 +221,7 @@ Notification:
 
 Payment:
 
-- Midtrans/Xendit
+- Manual Bank Transfer/QRIS, with future GoPay partner research
 
 ⸻
 

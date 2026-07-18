@@ -31,13 +31,13 @@ class MembershipController extends Controller
             billingCycle: $request->validated('billing_cycle') ?? null,
         ));
 
-        return ApiResponder::success(new MembershipHistoryResource($purchase->load('package')), 'Membership activated', 201);
+        return ApiResponder::success(new MembershipHistoryResource($purchase->load(['package', 'paymentConfirmations'])), 'Membership purchase created. Please confirm your payment.', 201);
     }
 
     public function history(Request $request): JsonResponse
     {
         $history = $request->user()->member->membershipPurchases()
-            ->with('package')
+            ->with(['package', 'paymentConfirmations'])
             ->latest()
             ->get();
 

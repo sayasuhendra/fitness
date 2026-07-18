@@ -21,7 +21,7 @@ class OrdersTable
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'completed' => 'success',
+                        'paid', 'completed' => 'success',
                         'cancelled' => 'danger',
                         default => 'warning',
                     })
@@ -47,16 +47,16 @@ class OrdersTable
             ->filters([
                 SelectFilter::make('status')
                     ->options([
-                        'pending' => 'Pending',
-                        'completed' => 'Completed',
-                        'cancelled' => 'Cancelled',
+                        'pending_payment' => 'Menunggu Pembayaran',
+                        'paid' => 'Sudah Dibayar',
+                        'completed' => 'Selesai',
+                        'cancelled' => 'Dibatalkan',
                     ]),
                 SelectFilter::make('payment_method')
                     ->options([
                         'qris' => 'QRIS',
-                        'bank_transfer' => 'Bank Transfer',
-                        'midtrans' => 'Midtrans',
-                        'cash' => 'Cash',
+                        'bank_transfer' => 'Transfer Bank',
+                        'cash' => 'Tunai',
                     ]),
             ])
             ->recordActions([

@@ -22,6 +22,9 @@ class MembershipHistoryResource extends JsonResource
             'visits_allowed' => $this->visits_allowed,
             'visits_used' => $this->visits_used,
             'remaining_visits' => $this->remainingVisits(),
+            'payment_method' => $this->payment_method,
+            'payment_reference' => $this->payment_reference,
+            'payment_confirmations' => PaymentConfirmationResource::collection($this->whenLoaded('paymentConfirmations')),
         ];
     }
 }

@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace App\Actions\Booking;
 
 use App\Models\ClassBooking;
+use App\Models\ClassSession;
 use App\Models\FitnessClass;
 use App\Models\Member;
+use App\Services\Classes\ClassSessionGenerator;
+use App\Services\Notifications\MemberNotificationService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -17,19 +20,21 @@ final class BookClassAction
     public function execute(
         Member $member,
         int $classId,
+        ?int $classSessionId = null,
         ?string $bookedForDate = null,
         string $accessType = 'membership',
         bool $personalTrainerRequested = false,
         ?string $paymentMethod = null,
     ): ClassBooking {
-        return DB::transaction(function () use ($member, $classId, $bookedForDate, $accessType, $personalTrainerRequested, $paymentMethod): ClassBooking {
+        $booking = DB::transaction(function () use ($member, $classId, $classSessionId, $bookedForDate, $accessType, $personalTrainerRequested, $paymentMethod): ClassBooking {
             /** @var FitnessClass $class */
             $class = FitnessClass::query()->lockForUpdate()->findOrFail($classId);
-            $bookingDate = Carbon::parse($bookedForDate ?? $class->class_date)->toDateString();
+            $session = $this->resolveSession($class, $classSessionId, $bookedForDate);
+            $bookingDate = $session->session_date->toDateString();
             $accessType = $accessType === 'one_time' ? 'one_time' : 'membership';
 
-            if (! $class->occursOn($bookingDate)) {
-                throw ValidationException::withMessages(['booked_for_date' => 'This class is not available on the selected date.']);
+            if ($session->fitness_class_id !== $class->id) {
+                throw ValidationException::withMessages(['class_session_id' => 'This session does not belong to the selected class.']);
             }
 
             $membership = $member->activeMembership();
@@ -56,16 +61,15 @@ final class BookClassAction
                 throw ValidationException::withMessages(['personal_trainer_requested' => 'Your membership does not include a personal trainer.']);
             }
 
-            $bookedCount = $class->confirmedBookingsCountForDate($bookingDate);
+            $bookedCount = $session->confirmedBookingsCount();
 
-            if ($bookedCount >= $class->capacity) {
+            if ($bookedCount >= $session->capacity) {
                 throw ValidationException::withMessages(['class_id' => 'Class capacity is full.']);
             }
 
             $existing = ClassBooking::query()
                 ->where('member_id', $member->id)
-                ->where('fitness_class_id', $class->id)
-                ->whereDate('booked_for_date', $bookingDate)
+                ->where('class_session_id', $session->id)
                 ->first();
 
             if ($existing !== null) {
@@ -74,19 +78,16 @@ final class BookClassAction
                 }
 
                 $existing->update([
-                    'status' => 'confirmed',
+                    'status' => $accessType === 'one_time' ? 'pending_payment' : 'confirmed',
                     'access_type' => $accessType,
+                    'class_session_id' => $session->id,
                     'personal_trainer_requested' => $personalTrainerRequested,
                     'amount' => $this->bookingAmount($class, $accessType, $personalTrainerRequested),
                     'payment_method' => $paymentMethod,
-                    'payment_reference' => $accessType === 'one_time' ? 'VISIT-'.Str::upper(Str::random(10)) : null,
+                    'payment_reference' => $accessType === 'one_time' ? 'MANUAL-VISIT-'.Str::upper(Str::random(10)) : null,
                     'booked_at' => now(),
                     'cancelled_at' => null,
                 ]);
-
-                if ($accessType === 'membership' && $membership !== null) {
-                    $membership->increment('visits_used');
-                }
 
                 return $existing;
             }
@@ -94,22 +95,23 @@ final class BookClassAction
             $booking = ClassBooking::query()->create([
                 'member_id' => $member->id,
                 'fitness_class_id' => $class->id,
+                'class_session_id' => $session->id,
                 'booked_for_date' => $bookingDate,
-                'status' => 'confirmed',
+                'status' => $accessType === 'one_time' ? 'pending_payment' : 'confirmed',
                 'access_type' => $accessType,
                 'personal_trainer_requested' => $personalTrainerRequested,
                 'amount' => $this->bookingAmount($class, $accessType, $personalTrainerRequested),
                 'payment_method' => $paymentMethod,
-                'payment_reference' => $accessType === 'one_time' ? 'VISIT-'.Str::upper(Str::random(10)) : null,
+                'payment_reference' => $accessType === 'one_time' ? 'MANUAL-VISIT-'.Str::upper(Str::random(10)) : null,
                 'booked_at' => now(),
             ]);
 
-            if ($accessType === 'membership' && $membership !== null) {
-                $membership->increment('visits_used');
-            }
-
             return $booking;
         });
+
+        $this->notifyMember($booking);
+
+        return $booking;
     }
 
     private function bookingAmount(FitnessClass $class, string $accessType, bool $personalTrainerRequested): float
@@ -119,5 +121,57 @@ final class BookClassAction
         }
 
         return (float) $class->drop_in_price + ($personalTrainerRequested ? (float) $class->trainer_addon_price : 0);
+    }
+
+    private function resolveSession(FitnessClass $class, ?int $classSessionId, ?string $bookedForDate): ClassSession
+    {
+        if ($classSessionId !== null) {
+            return ClassSession::query()->lockForUpdate()->findOrFail($classSessionId);
+        }
+
+        $bookingDate = Carbon::parse($bookedForDate ?? $class->class_date)->toDateString();
+
+        if (! $class->occursOn($bookingDate)) {
+            throw ValidationException::withMessages(['booked_for_date' => 'This class is not available on the selected date.']);
+        }
+
+        app(ClassSessionGenerator::class)->forDate($bookingDate);
+
+        return ClassSession::query()
+            ->where('fitness_class_id', $class->id)
+            ->whereDate('session_date', $bookingDate)
+            ->where('start_time', $class->start_time)
+            ->lockForUpdate()
+            ->firstOrFail();
+    }
+
+    private function notifyMember(ClassBooking $booking): void
+    {
+        $booking->loadMissing('member.user', 'fitnessClass');
+        $user = $booking->member?->user;
+
+        if ($user === null) {
+            return;
+        }
+
+        if ($booking->status === 'pending_payment') {
+            app(MemberNotificationService::class)->send(
+                $user,
+                'Menunggu konfirmasi pembayaran',
+                'Booking '.$booking->fitnessClass->name.' sudah dibuat. Silakan selesaikan pembayaran agar jadwal terkonfirmasi.',
+                'booking_pending_payment',
+                '/payments/manual?payable_type=class_booking&payable_id='.$booking->id.'&amount='.$booking->amount.'&payment_method='.($booking->payment_method ?? 'qris'),
+            );
+
+            return;
+        }
+
+        app(MemberNotificationService::class)->send(
+            $user,
+            'Booking kelas berhasil',
+            'Anda berhasil booking '.$booking->fitnessClass->name.'. Sampai jumpa di kelas.',
+            'booking_confirmed',
+            '/classes/my-bookings',
+        );
     }
 }

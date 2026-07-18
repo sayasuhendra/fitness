@@ -86,7 +86,7 @@ return new class extends Migration
             $table->foreignId('fitness_class_id')->nullable()->constrained()->nullOnDelete();
             $table->dateTime('check_in_time');
             $table->string('status')->default('present');
-            $table->string('location')->default('Fitness Akhwat Studio');
+            $table->string('location')->default('Akhwat Gym Studio');
             $table->timestamps();
         });
 

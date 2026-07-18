@@ -1,0 +1,131 @@
+digraph AkhwatGymERD {
+    graph [
+        label="Akhwat Gym - Database Entity Relationship Diagram",
+        labelloc=t,
+        fontsize=26,
+        fontname="Helvetica Bold",
+        bgcolor="#F8FAFC",
+        pad=0.4,
+        nodesep=0.45,
+        ranksep=0.8,
+        rankdir=LR,
+        splines=ortho,
+        newrank=true
+    ];
+
+    node [
+        shape=record,
+        style="rounded,filled",
+        color="#475569",
+        fillcolor="#FFFFFF",
+        fontname="Helvetica",
+        fontsize=10,
+        margin="0.12,0.08"
+    ];
+
+    edge [
+        color="#64748B",
+        fontname="Helvetica",
+        fontsize=8,
+        arrowsize=0.7
+    ];
+
+    subgraph cluster_identity {
+        label="Identity and Access";
+        color="#7C3AED";
+        fontcolor="#5B21B6";
+        style="rounded,dashed";
+
+        users [fillcolor="#F5F3FF", label="{USERS|PK id\lUK email\lname\lphone\lavatar_url\lemail_verified_at\lpassword\l}"];
+        members [fillcolor="#F5F3FF", label="{MEMBERS|PK id\lFK, UK user_id\lUK member_code\ljoined_at\l}"];
+        trainers [fillcolor="#F5F3FF", label="{TRAINERS|PK id\lFK, UK user_id\lspecialization\lbio\lis_active\l}"];
+        roles [fillcolor="#EDE9FE", label="{ROLES|PK id\lUK name + guard_name\lguard_name\l}"];
+        permissions [fillcolor="#EDE9FE", label="{PERMISSIONS|PK id\lUK name + guard_name\lguard_name\l}"];
+        model_has_roles [fillcolor="#FAF5FF", label="{MODEL_HAS_ROLES|PK, FK role_id\lPK model_type\lPK model_id\l}"];
+        model_has_permissions [fillcolor="#FAF5FF", label="{MODEL_HAS_PERMISSIONS|PK, FK permission_id\lPK model_type\lPK model_id\l}"];
+        role_has_permissions [fillcolor="#FAF5FF", label="{ROLE_HAS_PERMISSIONS|PK, FK role_id\lPK, FK permission_id\l}"];
+    }
+
+    subgraph cluster_membership {
+        label="Membership, Classes, and Attendance";
+        color="#DB2777";
+        fontcolor="#9D174D";
+        style="rounded,dashed";
+
+        membership_packages [fillcolor="#FDF2F8", label="{MEMBERSHIP_PACKAGES|PK id\lname\ldescription\lpackage_type\lbilling_cycle\lincludes_personal_trainer\lhas_visit_limit\lvisit_limit\lallowed_class_types JSON\lduration_days\lprice\ldiscount_percent\loriginal_price\lis_active\l}"];
+        membership_purchases [fillcolor="#FDF2F8", label="{MEMBERSHIP_PURCHASES|PK id\lFK member_id\lFK membership_package_id\lstarts_at\lexpires_at\lstatus\lincludes_personal_trainer\lvisits_allowed\lvisits_used\lpayment_method\lamount\lpayment_reference\l}"];
+        fitness_classes [fillcolor="#FFF1F2", label="{FITNESS_CLASSES|PK id\lFK trainer_id\lname\lclass_type\ldescription\lcapacity\llocation\lis_recurring\lrecurring_days JSON\lrecurrence_ends_at\lclass_date\lstart_time\lend_time\lis_active\lallow_drop_in\ldrop_in_price\ltrainer_addon_price\l}"];
+        class_bookings [fillcolor="#FFF1F2", label="{CLASS_BOOKINGS|PK id\lFK member_id\lFK fitness_class_id\lUK member + class + date\lbooked_for_date\lstatus\laccess_type\lpersonal_trainer_requested\lamount\lpayment_method\lpayment_reference\lbooked_at\lcancelled_at\l}"];
+        attendances [fillcolor="#FFF1F2", label="{ATTENDANCES|PK id\lFK member_id\lFK fitness_class_id nullable\lcheck_in_time\lstatus\llocation\l}"];
+        facilities [fillcolor="#FCE7F3", label="{FACILITIES|PK id\lname\lUK slug\ldescription\licon\lsort_order\lis_active\l}"];
+    }
+
+    subgraph cluster_store {
+        label="Store and Checkout";
+        color="#059669";
+        fontcolor="#065F46";
+        style="rounded,dashed";
+
+        product_categories [fillcolor="#ECFDF5", label="{PRODUCT_CATEGORIES|PK id\lUK name\lUK slug\l}"];
+        products [fillcolor="#ECFDF5", label="{PRODUCTS|PK id\lFK product_category_id\lname\ldescription\lprice\lstock\limage_url\lis_active\l}"];
+        orders [fillcolor="#D1FAE5", label="{ORDERS|PK id\lFK member_id\lstatus\lpayment_method\ltotal_price\lpayment_reference\l}"];
+        order_items [fillcolor="#D1FAE5", label="{ORDER_ITEMS|PK id\lFK order_id\lFK product_id\lquantity\lunit_price\lsubtotal\l}"];
+    }
+
+    subgraph cluster_communications {
+        label="Authentication, Notifications, and Audit";
+        color="#0284C7";
+        fontcolor="#075985";
+        style="rounded,dashed";
+
+        personal_access_tokens [fillcolor="#EFF6FF", label="{PERSONAL_ACCESS_TOKENS|PK id\ltokenable_type\ltokenable_id\lname\lUK token\labilities\llast_used_at\lexpires_at\l}"];
+        device_tokens [fillcolor="#EFF6FF", label="{DEVICE_TOKENS|PK id\lFK user_id\lUK token\lplatform\l}"];
+        notifications [fillcolor="#EFF6FF", label="{NOTIFICATIONS|PK id UUID\ltype\lnotifiable_type\lnotifiable_id\ldata JSON\lread_at\l}"];
+        media [fillcolor="#E0F2FE", label="{MEDIA|PK id\lmodel_type\lmodel_id\lUK uuid\lcollection_name\lfile_name\lmime_type\ldisk\lsize\lcustom_properties JSON\l}"];
+        activity_log [fillcolor="#E0F2FE", label="{ACTIVITY_LOG|PK id\llog_name\ldescription\levent\lsubject_type\lsubject_id\lcauser_type\lcauser_id\lattribute_changes JSON\lproperties JSON\l}"];
+    }
+
+    subgraph cluster_framework {
+        label="Laravel Infrastructure";
+        color="#94A3B8";
+        fontcolor="#475569";
+        style="rounded,dashed";
+
+        password_reset_tokens [fillcolor="#F1F5F9", label="{PASSWORD_RESET_TOKENS|PK email\ltoken\lcreated_at\l}"];
+        sessions [fillcolor="#F1F5F9", label="{SESSIONS|PK id\luser_id logical\lip_address\luser_agent\lpayload\llast_activity\l}"];
+        cache [fillcolor="#F1F5F9", label="{CACHE / CACHE_LOCKS|PK key\lvalue or owner\lexpiration\l}"];
+        queues [fillcolor="#F1F5F9", label="{QUEUE TABLES|jobs\ljob_batches\lfailed_jobs\l}"];
+    }
+
+    users -> members [label="1 to 0..1", arrowhead=crow, arrowtail=tee, dir=both];
+    users -> trainers [label="1 to 0..1", arrowhead=crow, arrowtail=tee, dir=both];
+    users -> device_tokens [label="1 to many", arrowhead=crow, arrowtail=tee, dir=both];
+
+    members -> membership_purchases [label="1 to many", arrowhead=crow, arrowtail=tee, dir=both];
+    membership_packages -> membership_purchases [label="1 to many", arrowhead=crow, arrowtail=tee, dir=both];
+    trainers -> fitness_classes [label="1 to many", arrowhead=crow, arrowtail=tee, dir=both];
+    members -> class_bookings [label="1 to many", arrowhead=crow, arrowtail=tee, dir=both];
+    fitness_classes -> class_bookings [label="1 to many", arrowhead=crow, arrowtail=tee, dir=both];
+    members -> attendances [label="1 to many", arrowhead=crow, arrowtail=tee, dir=both];
+    fitness_classes -> attendances [label="0..1 to many", arrowhead=crow, arrowtail=odot, dir=both];
+
+    product_categories -> products [label="1 to many", arrowhead=crow, arrowtail=tee, dir=both];
+    members -> orders [label="1 to many", arrowhead=crow, arrowtail=tee, dir=both];
+    orders -> order_items [label="1 to many", arrowhead=crow, arrowtail=tee, dir=both];
+    products -> order_items [label="1 to many", arrowhead=crow, arrowtail=tee, dir=both];
+
+    roles -> model_has_roles [arrowhead=crow, arrowtail=tee, dir=both];
+    users -> model_has_roles [style=dashed, label="model_type=User", arrowhead=crow];
+    permissions -> model_has_permissions [arrowhead=crow, arrowtail=tee, dir=both];
+    users -> model_has_permissions [style=dashed, label="model_type=User", arrowhead=crow];
+    roles -> role_has_permissions [arrowhead=crow, arrowtail=tee, dir=both];
+    permissions -> role_has_permissions [arrowhead=crow, arrowtail=tee, dir=both];
+
+    users -> personal_access_tokens [style=dashed, label="tokenable", arrowhead=crow];
+    users -> notifications [style=dashed, label="notifiable", arrowhead=crow];
+    users -> sessions [style=dashed, label="logical user_id", arrowhead=crow];
+    users -> password_reset_tokens [style=dashed, label="logical email", arrowhead=crow];
+
+    media -> users [style=dotted, label="polymorphic model", constraint=false];
+    activity_log -> users [style=dotted, label="polymorphic causer", constraint=false];
+}
