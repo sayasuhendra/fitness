@@ -33,9 +33,15 @@ final class CheckoutOrderAction
                 $product = Product::query()->lockForUpdate()->findOrFail($item['product_id']);
                 $quantity = (int) $item['quantity'];
 
+                if (! $product->is_active) {
+                    throw ValidationException::withMessages([
+                        'items' => "{$product->name} sudah tidak tersedia.",
+                    ]);
+                }
+
                 if ($product->stock < $quantity) {
                     throw ValidationException::withMessages([
-                        'items' => "{$product->name} stock is not sufficient.",
+                        'items' => "Stok {$product->name} tidak cukup.",
                     ]);
                 }
 

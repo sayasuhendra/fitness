@@ -23,4 +23,15 @@ class CheckoutRequest extends FormRequest
             'payment_method' => ['required', 'string', Rule::in(['qris', 'bank_transfer', 'cash'])],
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'items.required' => 'Keranjang masih kosong.',
+            'items.min' => 'Keranjang masih kosong.',
+            'items.*.product_id.exists' => 'Produk tidak ditemukan atau sudah tidak tersedia. Silakan hapus produk dari keranjang dan pilih ulang dari toko.',
+            'items.*.quantity.min' => 'Jumlah produk minimal 1.',
+            'payment_method.in' => 'Metode pembayaran tidak tersedia.',
+        ];
+    }
 }

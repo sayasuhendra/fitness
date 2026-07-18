@@ -164,6 +164,24 @@ class FitnessApiTest extends TestCase
         $this->assertSame(3, $product->fresh()->stock);
     }
 
+    public function test_checkout_rejects_inactive_product(): void
+    {
+        $this->actingMember(withMembership: true);
+        $category = ProductCategory::query()->create(['name' => 'Healthy Drink', 'slug' => 'healthy-drink']);
+        $product = Product::factory()->create([
+            'product_category_id' => $category->id,
+            'stock' => 5,
+            'price' => 25000,
+            'is_active' => false,
+        ]);
+
+        $this->postJson('/api/v1/orders', [
+            'payment_method' => 'qris',
+            'items' => [['product_id' => $product->id, 'quantity' => 1]],
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors('items');
+    }
+
     public function test_member_can_create_personal_trainer_session_with_pt_membership(): void
     {
         $member = $this->actingMember();
