@@ -8,9 +8,11 @@ WEB_USER="${WEB_USER:-www-data}"
 REPO_BRANCH="${REPO_BRANCH:-main}"
 RUN_DEMO_USERS="${RUN_DEMO_USERS:-true}"
 RUN_SEEDERS="${RUN_SEEDERS:-false}"
+INSTALL_SYSTEMD_SERVICES="${INSTALL_SYSTEMD_SERVICES:-true}"
 SKIP_GIT_PULL="${SKIP_GIT_PULL:-false}"
 NPM_CACHE="${NPM_CACHE:-${APP_DIR}/.npm-cache}"
 COMPOSER_HOME="${COMPOSER_HOME:-${APP_DIR}/.composer}"
+PHP_BIN="${PHP_BIN:-$(command -v php || true)}"
 
 log() {
     printf "\n\033[1;32m==>\033[0m %s\n" "$1"
@@ -40,7 +42,7 @@ assert_ready() {
     command -v git >/dev/null 2>&1 || fail "git is not installed"
     command -v composer >/dev/null 2>&1 || fail "composer is not installed"
     command -v npm >/dev/null 2>&1 || fail "npm is not installed"
-    command -v php >/dev/null 2>&1 || fail "php is not installed"
+    [[ -n "${PHP_BIN}" ]] || fail "php is not installed"
 }
 
 run_as_web() {
@@ -132,6 +134,74 @@ run_laravel_deploy_steps() {
     run_as_web "php artisan up"
 }
 
+install_systemd_services() {
+    if [[ "${INSTALL_SYSTEMD_SERVICES}" != "true" ]]; then
+        warn "Skipping systemd services because INSTALL_SYSTEMD_SERVICES=false"
+        return
+    fi
+
+    if ! command -v systemctl >/dev/null 2>&1; then
+        warn "systemctl not found. Skipping queue and scheduler service installation."
+        return
+    fi
+
+    log "Installing queue and scheduler systemd services"
+
+    cat >/etc/systemd/system/fitness-queue.service <<SERVICE
+[Unit]
+Description=Akhwat Gym Laravel Queue Worker
+After=network.target
+
+[Service]
+Type=simple
+User=${WEB_USER}
+Group=${WEB_USER}
+WorkingDirectory=${APP_DIR}
+ExecStart=${PHP_BIN} ${APP_DIR}/artisan queue:work database --sleep=3 --tries=3 --timeout=90 --max-time=3600
+Restart=always
+RestartSec=5
+KillSignal=SIGTERM
+TimeoutStopSec=90
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+SERVICE
+
+    cat >/etc/systemd/system/fitness-scheduler.service <<SERVICE
+[Unit]
+Description=Akhwat Gym Laravel Scheduler
+After=network.target
+
+[Service]
+Type=oneshot
+User=${WEB_USER}
+Group=${WEB_USER}
+WorkingDirectory=${APP_DIR}
+ExecStart=${PHP_BIN} ${APP_DIR}/artisan schedule:run
+StandardOutput=journal
+StandardError=journal
+SERVICE
+
+    cat >/etc/systemd/system/fitness-scheduler.timer <<TIMER
+[Unit]
+Description=Run Akhwat Gym Laravel Scheduler Every Minute
+
+[Timer]
+OnCalendar=*-*-* *:*:00
+Persistent=true
+Unit=fitness-scheduler.service
+
+[Install]
+WantedBy=timers.target
+TIMER
+
+    systemctl daemon-reload
+    systemctl enable --now fitness-queue.service
+    systemctl enable --now fitness-scheduler.timer
+}
+
 reload_services() {
     log "Reloading application services"
 
@@ -178,6 +248,7 @@ main() {
     install_backend_dependencies
     build_frontend_assets
     run_laravel_deploy_steps
+    install_systemd_services
     reload_services
     print_summary
 }

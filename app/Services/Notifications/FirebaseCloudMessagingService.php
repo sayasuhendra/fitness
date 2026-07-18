@@ -63,13 +63,16 @@ class FirebaseCloudMessagingService
     {
         return (bool) config('services.firebase.enabled')
             && filled(config('services.firebase.project_id'))
-            && filled(config('services.firebase.service_account_json'));
+            && $this->serviceAccountJson() !== null;
     }
 
     private function accessToken(): ?string
     {
         return Cache::remember('firebase_access_token', 3300, function (): ?string {
-            $serviceAccount = json_decode((string) config('services.firebase.service_account_json'), true);
+            $serviceAccountJson = $this->serviceAccountJson();
+            $serviceAccount = $serviceAccountJson === null
+                ? null
+                : json_decode($serviceAccountJson, true);
 
             if (! is_array($serviceAccount) || empty($serviceAccount['client_email']) || empty($serviceAccount['private_key'])) {
                 Log::warning('Firebase service account JSON is invalid.');
@@ -118,6 +121,32 @@ class FirebaseCloudMessagingService
         $segments[] = $this->base64UrlEncode($signature);
 
         return implode('.', $segments);
+    }
+
+    private function serviceAccountJson(): ?string
+    {
+        $inlineJson = config('services.firebase.service_account_json');
+        if (filled($inlineJson)) {
+            return (string) $inlineJson;
+        }
+
+        $file = config('services.firebase.service_account_file');
+        if (! filled($file)) {
+            return null;
+        }
+
+        $path = (string) $file;
+        if (! is_file($path) || ! is_readable($path)) {
+            Log::warning('Firebase service account file is not readable.', [
+                'path' => $path,
+            ]);
+
+            return null;
+        }
+
+        $json = file_get_contents($path);
+
+        return is_string($json) && $json !== '' ? $json : null;
     }
 
     private function base64UrlEncode(string $value): string

@@ -33,10 +33,34 @@ FILESYSTEM_DISK=public
 AKHWAT_GYM_WHATSAPP_NUMBER=6285794132886
 ```
 
-Jalankan worker queue di server:
+## Queue dan Scheduler Production
+
+Script deploy `fitness-setup.sh` akan membuat dan menjalankan service berikut secara otomatis:
+
+- `fitness-queue.service`
+- `fitness-scheduler.service`
+- `fitness-scheduler.timer`
+
+Jalankan deploy:
+
+```bash
+cd /var/www/fitness
+sudo bash fitness-setup.sh
+```
+
+Cek status:
+
+```bash
+sudo systemctl status fitness-queue
+sudo systemctl status fitness-scheduler.timer
+sudo journalctl -u fitness-queue -f
+```
+
+Kalau ingin menjalankan manual tanpa systemd:
 
 ```bash
 php artisan queue:work --tries=3 --timeout=90
+php artisan schedule:run
 ```
 
 ## Firebase Push Notification
@@ -58,21 +82,52 @@ Langkah setup Firebase:
 5. Buka Google Cloud Console untuk project Firebase tersebut.
 6. Buat service account dengan akses Firebase Cloud Messaging.
 7. Generate private key JSON.
-8. Simpan JSON service account sebagai satu baris env di server.
+8. Simpan JSON service account di server sebagai file yang hanya bisa dibaca user web.
 
-Contoh env backend:
+Contoh setup file service account di server:
+
+```bash
+sudo mkdir -p /etc/akhwat-gym
+sudo nano /etc/akhwat-gym/firebase-service-account.json
+sudo chown root:www-data /etc/akhwat-gym/firebase-service-account.json
+sudo chmod 640 /etc/akhwat-gym/firebase-service-account.json
+```
+
+Env backend yang direkomendasikan:
 
 ```env
 FIREBASE_PUSH_ENABLED=true
-FIREBASE_PROJECT_ID=akhwat-gym
-FIREBASE_SERVICE_ACCOUNT_JSON='{"type":"service_account","project_id":"akhwat-gym","private_key_id":"...","private_key":"-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n","client_email":"firebase-adminsdk@akhwat-gym.iam.gserviceaccount.com","token_uri":"https://oauth2.googleapis.com/token"}'
+FIREBASE_PROJECT_ID=toko-online-9e33c
+FIREBASE_SERVICE_ACCOUNT_FILE=/etc/akhwat-gym/firebase-service-account.json
+```
+
+Validasi server config:
+
+```bash
+php artisan config:clear
+php artisan firebase:check
+```
+
+Alternatif jika tetap ingin memakai JSON satu baris di `.env`:
+
+```env
+FIREBASE_PUSH_ENABLED=true
+FIREBASE_PROJECT_ID=toko-online-9e33c
+FIREBASE_SERVICE_ACCOUNT_JSON='{"type":"service_account","project_id":"toko-online-9e33c","private_key_id":"...","private_key":"-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n","client_email":"firebase-adminsdk@toko-online-9e33c.iam.gserviceaccount.com","token_uri":"https://oauth2.googleapis.com/token"}'
 ```
 
 Setelah env berubah:
 
 ```bash
 php artisan config:clear
-php artisan optimize
+php artisan firebase:check
+php artisan config:cache
+```
+
+## Deploy Production
+
+```bash
+sudo bash fitness-setup.sh
 ```
 
 ## Pembayaran Manual
