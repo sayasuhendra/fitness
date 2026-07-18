@@ -6,6 +6,7 @@ DOMAIN="${DOMAIN:-fitness.dbaik.com}"
 APP_DIR="${APP_DIR:-/var/www/fitness}"
 WEB_USER="${WEB_USER:-www-data}"
 REPO_BRANCH="${REPO_BRANCH:-main}"
+RUN_DEMO_USERS="${RUN_DEMO_USERS:-true}"
 RUN_SEEDERS="${RUN_SEEDERS:-false}"
 SKIP_GIT_PULL="${SKIP_GIT_PULL:-false}"
 NPM_CACHE="${NPM_CACHE:-${APP_DIR}/.npm-cache}"
@@ -114,6 +115,10 @@ run_laravel_deploy_steps() {
     run_as_web "php artisan storage:link || true"
     run_as_web "php artisan migrate --force"
     run_as_web "php artisan db:seed --class=AdminRoleSeeder --force"
+
+    if [[ "${RUN_DEMO_USERS}" == "true" ]]; then
+        run_as_web "php artisan db:seed --class=DemoUserSeeder --force"
+    fi
 
     if [[ "${RUN_SEEDERS}" == "true" ]]; then
         run_as_web "php artisan db:seed --force"
