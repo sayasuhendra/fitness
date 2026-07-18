@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Filament\Pages\ScanMemberQr;
+use App\Filament\Pages\SendMemberNotification;
 use App\Models\Member;
 use App\Models\MembershipPackage;
 use App\Models\MembershipPurchase;
@@ -135,6 +136,47 @@ class AdminPanelTest extends TestCase
             'attendance_type' => 'gym_visit',
             'status' => 'present',
             'location' => 'Akhwat Gym Studio',
+        ]);
+    }
+
+    public function test_location_admin_can_access_send_member_notification_page(): void
+    {
+        $admin = $this->adminWithSeededRole('Admin di lokasi');
+
+        $this->actingAs($admin)
+            ->get('/admin/send-member-notification')
+            ->assertOk()
+            ->assertSee('Kirim Notifikasi');
+    }
+
+    public function test_admin_can_send_notification_to_selected_member(): void
+    {
+        $admin = $this->adminWithSeededRole('Admin di lokasi');
+        $member = Member::factory()->create();
+        $otherMember = Member::factory()->create();
+
+        $this->actingAs($admin);
+
+        Livewire::test(SendMemberNotification::class)
+            ->set('target', 'selected')
+            ->set('memberIds', [$member->id])
+            ->set('notificationTitle', 'Tes FCM')
+            ->set('body', 'Pesan untuk member tertentu.')
+            ->set('type', 'admin_broadcast')
+            ->set('actionUrl', '/notifications')
+            ->call('send')
+            ->assertSet('sentCount', 1);
+
+        $this->assertDatabaseHas('notifications', [
+            'notifiable_type' => $member->user->getMorphClass(),
+            'notifiable_id' => $member->user_id,
+            'type' => 'App\\Notifications\\MemberEventNotification',
+        ]);
+
+        $this->assertDatabaseMissing('notifications', [
+            'notifiable_type' => $otherMember->user->getMorphClass(),
+            'notifiable_id' => $otherMember->user_id,
+            'type' => 'App\\Notifications\\MemberEventNotification',
         ]);
     }
 
