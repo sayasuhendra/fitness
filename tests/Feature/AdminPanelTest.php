@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Filament\Pages\ScanMemberQr;
 use App\Models\Member;
 use App\Models\MembershipPackage;
 use App\Models\MembershipPurchase;
 use App\Models\User;
 use Database\Seeders\AdminRoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Crypt;
+use Livewire\Livewire;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -87,6 +90,52 @@ class AdminPanelTest extends TestCase
         $this->actingAs($admin)
             ->get('/admin/users')
             ->assertForbidden();
+    }
+
+    public function test_location_admin_can_access_member_qr_scanner(): void
+    {
+        $admin = $this->adminWithSeededRole('Admin di lokasi');
+
+        $this->actingAs($admin)
+            ->get('/admin/scan-member-qr')
+            ->assertOk()
+            ->assertSee('Scan QR Member');
+    }
+
+    public function test_member_qr_scanner_records_gym_visit_attendance(): void
+    {
+        $admin = $this->adminWithSeededRole('Admin di lokasi');
+        $member = Member::factory()->create();
+        $package = MembershipPackage::factory()->create();
+
+        MembershipPurchase::factory()->create([
+            'member_id' => $member->id,
+            'membership_package_id' => $package->id,
+            'status' => 'active',
+            'starts_at' => now()->subDay(),
+            'expires_at' => now()->addMonth(),
+            'visits_allowed' => 8,
+            'visits_used' => 0,
+        ]);
+
+        $payload = Crypt::encryptString(json_encode([
+            'member_id' => $member->id,
+            'expires_at' => now()->addMinutes(10)->toISOString(),
+        ], JSON_THROW_ON_ERROR));
+
+        $this->actingAs($admin);
+
+        Livewire::test(ScanMemberQr::class)
+            ->set('location', 'Akhwat Gym Studio')
+            ->call('submitScan', $payload)
+            ->assertSet('lastCheckIn.member_code', $member->member_code);
+
+        $this->assertDatabaseHas('attendances', [
+            'member_id' => $member->id,
+            'attendance_type' => 'gym_visit',
+            'status' => 'present',
+            'location' => 'Akhwat Gym Studio',
+        ]);
     }
 
     private function superAdmin(): User
