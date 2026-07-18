@@ -65,16 +65,18 @@ prepare_permissions() {
     mkdir -p \
         "${APP_DIR}/storage" \
         "${APP_DIR}/bootstrap/cache" \
+        "${APP_DIR}/public/build" \
         "${COMPOSER_HOME}" \
         "${NPM_CACHE}"
 
     chown -R "${WEB_USER}:${WEB_USER}" \
         "${APP_DIR}/storage" \
         "${APP_DIR}/bootstrap/cache" \
+        "${APP_DIR}/public/build" \
         "${COMPOSER_HOME}" \
         "${NPM_CACHE}"
 
-    chmod -R ug+rwX "${APP_DIR}/storage" "${APP_DIR}/bootstrap/cache"
+    chmod -R ug+rwX "${APP_DIR}/storage" "${APP_DIR}/bootstrap/cache" "${APP_DIR}/public/build"
 }
 
 install_backend_dependencies() {
@@ -86,8 +88,11 @@ build_frontend_assets() {
     log "Installing Node dependencies and building frontend assets"
 
     rm -rf "${APP_DIR}/node_modules"
-    mkdir -p "${NPM_CACHE}"
-    chown -R "${WEB_USER}:${WEB_USER}" "${NPM_CACHE}"
+    mkdir -p "${APP_DIR}/public/build" "${NPM_CACHE}"
+    chown -R "${WEB_USER}:${WEB_USER}" \
+        "${APP_DIR}/public/build" \
+        "${NPM_CACHE}"
+    chmod -R ug+rwX "${APP_DIR}/public/build"
 
     if [[ -f "${APP_DIR}/package-lock.json" ]]; then
         run_as_web "npm ci --no-audit --no-fund --cache '${NPM_CACHE}'"
@@ -96,6 +101,9 @@ build_frontend_assets() {
     fi
 
     run_as_web "npm run build"
+
+    chown -R "${WEB_USER}:${WEB_USER}" "${APP_DIR}/public/build"
+    chmod -R ug+rwX "${APP_DIR}/public/build"
 }
 
 run_laravel_deploy_steps() {
