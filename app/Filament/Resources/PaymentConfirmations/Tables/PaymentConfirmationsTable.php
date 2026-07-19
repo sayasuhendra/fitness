@@ -2,11 +2,15 @@
 
 namespace App\Filament\Resources\PaymentConfirmations\Tables;
 
+use App\Actions\Payments\ApprovePaymentConfirmationAction;
+use App\Actions\Payments\RejectPaymentConfirmationAction;
 use App\Filament\Resources\PaymentConfirmations\PaymentConfirmationResource;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Textarea;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -68,6 +72,49 @@ class PaymentConfirmationsTable
                     ->label('Detail')
                     ->icon('heroicon-o-eye')
                     ->url(fn ($record): string => PaymentConfirmationResource::getUrl('view', ['record' => $record])),
+                Action::make('approve')
+                    ->label('Terima')
+                    ->color('success')
+                    ->icon('heroicon-o-check-circle')
+                    ->visible(fn ($record): bool => $record->status === 'pending')
+                    ->schema([
+                        Textarea::make('admin_note')
+                            ->label('Catatan Admin')
+                            ->rows(3),
+                    ])
+                    ->requiresConfirmation()
+                    ->modalHeading('Terima pembayaran ini?')
+                    ->modalDescription('Status transaksi akan diperbarui sesuai jenis pembayaran member.')
+                    ->action(function ($record, array $data): void {
+                        app(ApprovePaymentConfirmationAction::class)->execute($record, auth()->user(), $data['admin_note'] ?? null);
+
+                        Notification::make()
+                            ->title('Pembayaran diterima')
+                            ->success()
+                            ->send();
+                    }),
+                Action::make('reject')
+                    ->label('Tolak')
+                    ->color('danger')
+                    ->icon('heroicon-o-x-circle')
+                    ->visible(fn ($record): bool => $record->status === 'pending')
+                    ->schema([
+                        Textarea::make('admin_note')
+                            ->label('Alasan Penolakan')
+                            ->rows(3)
+                            ->required(),
+                    ])
+                    ->requiresConfirmation()
+                    ->modalHeading('Tolak pembayaran ini?')
+                    ->modalDescription('Member akan melihat status pembayaran ditolak dan catatan admin.')
+                    ->action(function ($record, array $data): void {
+                        app(RejectPaymentConfirmationAction::class)->execute($record, auth()->user(), $data['admin_note'] ?? null);
+
+                        Notification::make()
+                            ->title('Pembayaran ditolak')
+                            ->danger()
+                            ->send();
+                    }),
                 EditAction::make()
                     ->label('Edit'),
             ])
