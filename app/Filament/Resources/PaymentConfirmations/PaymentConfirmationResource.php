@@ -4,7 +4,9 @@ namespace App\Filament\Resources\PaymentConfirmations;
 
 use App\Filament\Resources\PaymentConfirmations\Pages\EditPaymentConfirmation;
 use App\Filament\Resources\PaymentConfirmations\Pages\ListPaymentConfirmations;
+use App\Filament\Resources\PaymentConfirmations\Pages\ViewPaymentConfirmation;
 use App\Filament\Resources\PaymentConfirmations\Schemas\PaymentConfirmationForm;
+use App\Filament\Resources\PaymentConfirmations\Schemas\PaymentConfirmationInfolist;
 use App\Filament\Resources\PaymentConfirmations\Tables\PaymentConfirmationsTable;
 use App\Models\PaymentConfirmation;
 use BackedEnum;
@@ -33,6 +35,11 @@ class PaymentConfirmationResource extends Resource
         return PaymentConfirmationForm::configure($schema);
     }
 
+    public static function infolist(Schema $schema): Schema
+    {
+        return PaymentConfirmationInfolist::configure($schema);
+    }
+
     public static function table(Table $table): Table
     {
         return PaymentConfirmationsTable::configure($table);
@@ -42,6 +49,7 @@ class PaymentConfirmationResource extends Resource
     {
         return [
             'index' => ListPaymentConfirmations::route('/'),
+            'view' => ViewPaymentConfirmation::route('/{record}'),
             'edit' => EditPaymentConfirmation::route('/{record}/edit'),
         ];
     }
