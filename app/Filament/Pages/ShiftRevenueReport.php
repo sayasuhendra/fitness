@@ -54,7 +54,8 @@ class ShiftRevenueReport extends Page
         $memberships = MembershipPurchase::query()
             ->with('handler')
             ->whereNotNull('handled_by')
-            ->whereBetween('handled_date', [$this->dateFrom, $this->dateTo])
+            ->whereDate('handled_date', '>=', $this->dateFrom)
+            ->whereDate('handled_date', '<=', $this->dateTo)
             ->whereIn('status', ['active'])
             ->get()
             ->map(fn (MembershipPurchase $purchase): array => [
@@ -69,7 +70,8 @@ class ShiftRevenueReport extends Page
         $orders = Order::query()
             ->with('handler', 'items')
             ->whereNotNull('handled_by')
-            ->whereBetween('handled_date', [$this->dateFrom, $this->dateTo])
+            ->whereDate('handled_date', '>=', $this->dateFrom)
+            ->whereDate('handled_date', '<=', $this->dateTo)
             ->whereIn('status', ['paid', 'completed'])
             ->get()
             ->map(fn (Order $order): array => [

@@ -19,6 +19,7 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Trainer;
 use App\Models\User;
+use App\Support\AdminShift;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Seeder;
@@ -168,6 +169,7 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->seedOrder($member, $products);
+        $this->seedShiftRevenueReportSamples($member, $products);
         $this->seedNotifications($member);
     }
 
@@ -649,6 +651,153 @@ class DatabaseSeeder extends Seeder
                 'subtotal_cost' => (float) $product->cost_price * $quantity,
                 'profit_amount' => (((float) $product->price - (float) $product->cost_price) * $quantity),
             ]);
+        }
+    }
+
+    private function seedShiftRevenueReportSamples(Member $member, Collection $products): void
+    {
+        $shift1Admin = User::query()->where('email', 'admin.lokasi.shift1@akhwatgym.test')->first();
+        $shift2Admin = User::query()->where('email', 'admin.lokasi.shift2@akhwatgym.test')->first();
+        $gymMember = MembershipPackage::query()->where('name', 'Gym Member')->first();
+        $allClass = MembershipPackage::query()->where('name', 'Member All Class 8x')->first();
+
+        if ($shift1Admin === null || $shift2Admin === null || $gymMember === null || $allClass === null) {
+            return;
+        }
+
+        $membershipSamples = [
+            [
+                'reference' => 'SHIFT-DEMO-MEMBER-S1-TODAY',
+                'admin' => $shift1Admin,
+                'shift' => AdminShift::SHIFT_1,
+                'date' => today(),
+                'package' => $gymMember,
+                'method' => 'cash',
+            ],
+            [
+                'reference' => 'SHIFT-DEMO-MEMBER-S2-TODAY',
+                'admin' => $shift2Admin,
+                'shift' => AdminShift::SHIFT_2,
+                'date' => today(),
+                'package' => $allClass,
+                'method' => 'qris',
+            ],
+            [
+                'reference' => 'SHIFT-DEMO-MEMBER-S1-YESTERDAY',
+                'admin' => $shift1Admin,
+                'shift' => AdminShift::SHIFT_1,
+                'date' => today()->subDay(),
+                'package' => $allClass,
+                'method' => 'cash',
+            ],
+        ];
+
+        foreach ($membershipSamples as $sample) {
+            $startsAt = $sample['date']->copy()->setTime(8, 30);
+
+            MembershipPurchase::query()->updateOrCreate([
+                'payment_reference' => $sample['reference'],
+            ], [
+                'member_id' => $member->id,
+                'handled_by' => $sample['admin']->id,
+                'handled_shift' => $sample['shift'],
+                'handled_date' => $sample['date']->toDateString(),
+                'membership_package_id' => $sample['package']->id,
+                'starts_at' => $startsAt,
+                'expires_at' => $startsAt->copy()->addDays((int) $sample['package']->duration_days),
+                'status' => 'active',
+                'includes_personal_trainer' => $sample['package']->includes_personal_trainer,
+                'visits_allowed' => $sample['package']->has_visit_limit ? $sample['package']->visit_limit : null,
+                'visits_used' => 0,
+                'payment_method' => $sample['method'],
+                'amount' => $sample['package']->price,
+                'payment_reference' => $sample['reference'],
+            ]);
+        }
+
+        $greenJuice = $products->firstWhere('name', 'Cold Pressed Green Juice');
+        $oats = $products->firstWhere('name', 'Protein Overnight Oats');
+        $smoothie = $products->firstWhere('name', 'Berry Recovery Smoothie');
+        $protein = $products->firstWhere('name', 'Plant Protein Sachet');
+
+        $orderSamples = [
+            [
+                'reference' => 'SHIFT-DEMO-ORDER-S1-TODAY',
+                'admin' => $shift1Admin,
+                'shift' => AdminShift::SHIFT_1,
+                'date' => today(),
+                'method' => 'cash',
+                'items' => [
+                    [$greenJuice, 3],
+                    [$oats, 2],
+                ],
+            ],
+            [
+                'reference' => 'SHIFT-DEMO-ORDER-S2-TODAY',
+                'admin' => $shift2Admin,
+                'shift' => AdminShift::SHIFT_2,
+                'date' => today(),
+                'method' => 'qris',
+                'items' => [
+                    [$smoothie, 2],
+                    [$protein, 1],
+                ],
+            ],
+            [
+                'reference' => 'SHIFT-DEMO-ORDER-S2-YESTERDAY',
+                'admin' => $shift2Admin,
+                'shift' => AdminShift::SHIFT_2,
+                'date' => today()->subDay(),
+                'method' => 'cash',
+                'items' => [
+                    [$greenJuice, 1],
+                    [$protein, 2],
+                ],
+            ],
+        ];
+
+        foreach ($orderSamples as $sample) {
+            $items = collect($sample['items'])
+                ->filter(fn (array $item): bool => $item[0] instanceof Product);
+
+            if ($items->isEmpty()) {
+                continue;
+            }
+
+            $totalPrice = (float) $items->sum(fn (array $item): float => (float) $item[0]->price * (int) $item[1]);
+
+            $order = Order::query()->updateOrCreate([
+                'payment_reference' => $sample['reference'],
+            ], [
+                'member_id' => $member->id,
+                'handled_by' => $sample['admin']->id,
+                'handled_shift' => $sample['shift'],
+                'handled_date' => $sample['date']->toDateString(),
+                'status' => 'completed',
+                'payment_method' => $sample['method'],
+                'total_price' => $totalPrice,
+                'payment_reference' => $sample['reference'],
+                'delivered_at' => $sample['date']->copy()->setTime(18, 0),
+                'delivered_by' => $sample['admin']->id,
+            ]);
+
+            $order->items()
+                ->whereNotIn('product_id', $items->map(fn (array $item): int => $item[0]->id)->all())
+                ->delete();
+
+            foreach ($items as [$product, $quantity]) {
+                OrderItem::query()->updateOrCreate([
+                    'order_id' => $order->id,
+                    'product_id' => $product->id,
+                ], [
+                    'quantity' => $quantity,
+                    'unit_price' => $product->price,
+                    'unit_cost' => $product->cost_price,
+                    'subtotal' => (float) $product->price * $quantity,
+                    'subtotal_cost' => (float) $product->cost_price * $quantity,
+                    'profit_amount' => (((float) $product->price - (float) $product->cost_price) * $quantity),
+                ]);
+            }
         }
     }
 

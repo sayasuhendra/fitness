@@ -56,6 +56,11 @@ class LocationOperations extends Page
 
     public int $productQuantity = 1;
 
+    /**
+     * @var array<int, array{product_id: int, name: string, price: float, stock: int, quantity: int}>
+     */
+    public array $orderItems = [];
+
     public string $orderPaymentMethod = 'cash';
 
     public ?int $checkInMemberId = null;
@@ -192,18 +197,29 @@ class LocationOperations extends Page
     {
         $data = $this->validate([
             'orderMemberId' => ['required', 'integer', 'exists:members,id'],
-            'productId' => ['required', 'integer', 'exists:products,id'],
-            'productQuantity' => ['required', 'integer', 'min:1'],
             'orderPaymentMethod' => ['required', 'string', 'in:cash,qris,bank_transfer,manual_transfer'],
         ]);
+
+        if ($this->orderItems === []) {
+            Notification::make()
+                ->title('Pesanan belum berisi produk')
+                ->body('Tambahkan minimal satu produk sebelum membuat pesanan.')
+                ->danger()
+                ->send();
+
+            return;
+        }
 
         try {
             $member = Member::query()->findOrFail((int) $data['orderMemberId']);
             $order = app(CheckoutOrderAction::class)->execute($member, new CheckoutData(
-                items: [[
-                    'product_id' => (int) $data['productId'],
-                    'quantity' => (int) $data['productQuantity'],
-                ]],
+                items: collect($this->orderItems)
+                    ->map(fn (array $item): array => [
+                        'product_id' => (int) $item['product_id'],
+                        'quantity' => (int) $item['quantity'],
+                    ])
+                    ->values()
+                    ->all(),
                 paymentMethod: $data['orderPaymentMethod'],
             ), auth()->user(), $data['orderPaymentMethod'] === 'cash');
         } catch (ValidationException $exception) {
@@ -216,13 +232,72 @@ class LocationOperations extends Page
             return;
         }
 
+        $itemCount = count($this->orderItems);
+        $this->orderItems = [];
+        $this->productId = null;
         $this->productQuantity = 1;
 
         Notification::make()
             ->title('Pesanan produk berhasil dibuat')
-            ->body('Stok sudah dikurangi dan transaksi masuk laporan shift.')
+            ->body($itemCount.' produk tercatat, stok sudah dikurangi, dan transaksi masuk laporan shift.')
             ->success()
             ->send();
+    }
+
+    public function addProductToOrder(): void
+    {
+        $data = $this->validate([
+            'productId' => ['required', 'integer', 'exists:products,id'],
+            'productQuantity' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $product = Product::query()
+            ->where('is_active', true)
+            ->findOrFail((int) $data['productId']);
+
+        $quantity = (int) $data['productQuantity'];
+        $existingIndex = collect($this->orderItems)
+            ->search(fn (array $item): bool => (int) $item['product_id'] === $product->id);
+        $existingQuantity = $existingIndex === false ? 0 : (int) $this->orderItems[$existingIndex]['quantity'];
+        $requestedQuantity = $existingQuantity + $quantity;
+
+        if ($requestedQuantity > $product->stock) {
+            Notification::make()
+                ->title('Stok tidak cukup')
+                ->body("Stok {$product->name} tersisa {$product->stock}.")
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        if ($existingIndex === false) {
+            $this->orderItems[] = [
+                'product_id' => $product->id,
+                'name' => $product->name,
+                'price' => (float) $product->price,
+                'stock' => (int) $product->stock,
+                'quantity' => $quantity,
+            ];
+        } else {
+            $this->orderItems[$existingIndex]['quantity'] = $requestedQuantity;
+        }
+
+        $this->productId = null;
+        $this->productQuantity = 1;
+    }
+
+    public function removeProductFromOrder(int $index): void
+    {
+        unset($this->orderItems[$index]);
+
+        $this->orderItems = array_values($this->orderItems);
+    }
+
+    public function orderItemsTotal(): float
+    {
+        return collect($this->orderItems)
+            ->sum(fn (array $item): float => (float) $item['price'] * (int) $item['quantity']);
     }
 
     public function manualCheckIn(): void

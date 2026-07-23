@@ -11,6 +11,7 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Validation\Rule;
 use UnitEnum;
 
 class SendMemberNotification extends Page
@@ -45,6 +46,30 @@ class SendMemberNotification extends Page
     public function getTitle(): string|Htmlable
     {
         return 'Kirim Notifikasi';
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function actionUrlOptions(): array
+    {
+        return [
+            '' => 'Tidak membuka halaman khusus',
+            '/dashboard' => 'Beranda Member',
+            '/notifications' => 'Kotak Notifikasi',
+            '/packages' => 'Paket & Kelas',
+            '/memberships' => 'Daftar Paket Membership',
+            '/memberships/history' => 'Riwayat Paket Member',
+            '/classes' => 'Jadwal Kelas',
+            '/classes/my-bookings' => 'Booking Kelas Saya',
+            '/personal-training' => 'Personal Trainer',
+            '/attendance' => 'QR Check-In',
+            '/attendance/history' => 'Riwayat Kehadiran',
+            '/store' => 'Belanja Produk',
+            '/store/cart' => 'Keranjang Belanja',
+            '/orders' => 'Riwayat Belanja',
+            '/profile' => 'Profil Member',
+        ];
     }
 
     public static function canAccess(): bool
@@ -82,7 +107,7 @@ class SendMemberNotification extends Page
             'notificationTitle' => ['required', 'string', 'max:80'],
             'body' => ['required', 'string', 'max:240'],
             'type' => ['required', 'string', 'max:80'],
-            'actionUrl' => ['nullable', 'string', 'max:255'],
+            'actionUrl' => ['nullable', 'string', Rule::in(array_keys($this->actionUrlOptions()))],
         ]);
 
         if ($validated['target'] === 'selected' && count($validated['memberIds']) === 0) {
