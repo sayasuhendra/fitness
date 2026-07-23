@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Actions\Orders\CancelOrderAction;
 use App\Actions\Payments\ApprovePaymentConfirmationAction;
 use App\Models\ClassBooking;
 use App\Models\DeviceToken;
@@ -135,7 +136,7 @@ class FitnessApiTest extends TestCase
         ]);
     }
 
-    public function test_checkout_reduces_stock_after_payment_approval(): void
+    public function test_checkout_reduces_stock_when_order_is_created(): void
     {
         $this->actingMember(withMembership: true);
         $category = ProductCategory::query()->create(['name' => 'Healthy Food', 'slug' => 'healthy-food']);
@@ -148,7 +149,7 @@ class FitnessApiTest extends TestCase
             ->assertJsonPath('data.total_price', 50000)
             ->assertJsonPath('data.status', 'pending_payment');
 
-        $this->assertSame(5, $product->fresh()->stock);
+        $this->assertSame(3, $product->fresh()->stock);
 
         $confirmation = PaymentConfirmation::query()->create([
             'payable_type' => Order::class,
@@ -162,6 +163,25 @@ class FitnessApiTest extends TestCase
         app(ApprovePaymentConfirmationAction::class)->execute($confirmation, User::factory()->create());
 
         $this->assertSame(3, $product->fresh()->stock);
+    }
+
+    public function test_cancel_order_restores_reserved_stock(): void
+    {
+        $this->actingMember(withMembership: true);
+        $category = ProductCategory::query()->create(['name' => 'Healthy Snack', 'slug' => 'healthy-snack']);
+        $product = Product::factory()->create(['product_category_id' => $category->id, 'stock' => 5, 'price' => 20000]);
+
+        $response = $this->postJson('/api/v1/orders', [
+            'payment_method' => 'qris',
+            'items' => [['product_id' => $product->id, 'quantity' => 2]],
+        ])->assertCreated();
+
+        $this->assertSame(3, $product->fresh()->stock);
+
+        app(CancelOrderAction::class)->execute(Order::query()->findOrFail($response->json('data.id')));
+
+        $this->assertSame(5, $product->fresh()->stock);
+        $this->assertSame('cancelled', Order::query()->findOrFail($response->json('data.id'))->status);
     }
 
     public function test_checkout_rejects_inactive_product(): void
@@ -206,6 +226,25 @@ class FitnessApiTest extends TestCase
             'trainer_id' => $trainer->id,
             'status' => 'scheduled',
         ]);
+    }
+
+    public function test_class_booking_rejects_personal_trainer_add_on(): void
+    {
+        $member = $this->actingMember();
+        $package = MembershipPackage::factory()->create(['includes_personal_trainer' => true]);
+        MembershipPurchase::factory()->create([
+            'member_id' => $member->id,
+            'membership_package_id' => $package->id,
+            'includes_personal_trainer' => true,
+        ]);
+        $class = FitnessClass::factory()->create(['capacity' => 10]);
+
+        $this->postJson('/api/v1/classes/book', [
+            'class_id' => $class->id,
+            'access_type' => 'membership',
+            'personal_trainer_requested' => true,
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors('personal_trainer_requested');
     }
 
     public function test_one_time_personal_trainer_session_waits_for_payment_approval(): void

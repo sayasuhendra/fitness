@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\PaymentConfirmations\Schemas;
 
 use App\Models\PaymentConfirmation;
+use App\Support\AdminShift;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -49,6 +50,14 @@ class PaymentConfirmationInfolist
                             ->placeholder('-'),
                         TextEntry::make('verifier.name')
                             ->label('Diverifikasi Oleh')
+                            ->placeholder('-'),
+                        TextEntry::make('handled_shift')
+                            ->label('Shift Verifikasi')
+                            ->formatStateUsing(fn (?string $state): string => AdminShift::label($state))
+                            ->placeholder('-'),
+                        TextEntry::make('handled_date')
+                            ->label('Tanggal Shift')
+                            ->date()
                             ->placeholder('-'),
                         TextEntry::make('proof_path')
                             ->label('Bukti Pembayaran')

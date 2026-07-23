@@ -21,7 +21,11 @@ class ProductResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::BuildingStorefront;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Store';
+    protected static ?string $navigationLabel = 'Manajemen Produk';
+
+    protected static ?string $modelLabel = 'Produk';
+
+    protected static string|UnitEnum|null $navigationGroup = 'Toko';
 
     protected static ?int $navigationSort = 20;
 

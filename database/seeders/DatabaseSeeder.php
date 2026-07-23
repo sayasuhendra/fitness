@@ -160,6 +160,7 @@ class DatabaseSeeder extends Seeder
             ], [
                 'description' => $seed['description'],
                 'price' => $seed['price'],
+                'cost_price' => $seed['cost_price'],
                 'stock' => $seed['stock'],
                 'image_url' => $seed['image_url'],
                 'is_active' => true,
@@ -176,14 +177,14 @@ class DatabaseSeeder extends Seeder
     private function seedAkhwatGymTrainers(): array
     {
         $trainerSeeds = [
-            'Zin Leila' => ['email' => 'leila@akhwatgym.test', 'specialization' => 'Zumba, Zumba Gold'],
-            'Teh Wati' => ['email' => 'wati@akhwatgym.test', 'specialization' => 'Yoga, Prenatal Yoga'],
-            'Pro Lia' => ['email' => 'lia@akhwatgym.test', 'specialization' => 'Poundfit'],
-            'Teh Novi' => ['email' => 'novi@akhwatgym.test', 'specialization' => 'Bomiya'],
-            'Teh Uchie' => ['email' => 'uchie@akhwatgym.test', 'specialization' => 'Fitdance'],
-            'Teh Febby' => ['email' => 'febby@akhwatgym.test', 'specialization' => 'Aeromix'],
-            'Zin Dewi' => ['email' => 'dewi@akhwatgym.test', 'specialization' => 'Zumba'],
-            'Zin Gita' => ['email' => 'gita@akhwatgym.test', 'specialization' => 'Zumba'],
+            'Zin Leila' => ['email' => 'leila@akhwatgym.test', 'specialization' => 'Zumba, Zumba Gold', 'whatsapp' => '6285794132886'],
+            'Teh Wati' => ['email' => 'wati@akhwatgym.test', 'specialization' => 'Yoga, Prenatal Yoga', 'whatsapp' => '6285794132886'],
+            'Pro Lia' => ['email' => 'lia@akhwatgym.test', 'specialization' => 'Poundfit', 'whatsapp' => '6285794132886'],
+            'Teh Novi' => ['email' => 'novi@akhwatgym.test', 'specialization' => 'Bomiya', 'whatsapp' => '6285794132886'],
+            'Teh Uchie' => ['email' => 'uchie@akhwatgym.test', 'specialization' => 'Fitdance', 'whatsapp' => '6285794132886'],
+            'Teh Febby' => ['email' => 'febby@akhwatgym.test', 'specialization' => 'Aeromix', 'whatsapp' => '6285794132886'],
+            'Zin Dewi' => ['email' => 'dewi@akhwatgym.test', 'specialization' => 'Zumba', 'whatsapp' => '6285794132886'],
+            'Zin Gita' => ['email' => 'gita@akhwatgym.test', 'specialization' => 'Zumba', 'whatsapp' => '6285794132886'],
         ];
 
         $trainers = [];
@@ -206,6 +207,7 @@ class DatabaseSeeder extends Seeder
                 ['user_id' => $user->id],
                 [
                     'specialization' => $seed['specialization'],
+                    'whatsapp_number' => $seed['whatsapp'],
                     'bio' => "{$name} adalah instruktur Akhwat Gym untuk kelas {$seed['specialization']}.",
                     'is_active' => true,
                 ],
@@ -556,6 +558,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Protein Overnight Oats',
                 'description' => 'Oats tinggi protein dengan buah segar untuk energi sebelum kelas.',
                 'price' => 35000,
+                'cost_price' => 22000,
                 'stock' => 30,
                 'image_url' => 'https://images.unsplash.com/photo-1517673132405-a56a62b18caf?auto=format&fit=crop&w=900&q=80',
             ],
@@ -565,6 +568,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Chicken Salad Bowl',
                 'description' => 'Salad ayam panggang, sayuran segar, dan dressing ringan.',
                 'price' => 52000,
+                'cost_price' => 34000,
                 'stock' => 18,
                 'image_url' => 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=900&q=80',
             ],
@@ -574,6 +578,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Cold Pressed Green Juice',
                 'description' => 'Minuman hijau segar dari sayur dan buah tanpa gula tambahan.',
                 'price' => 28000,
+                'cost_price' => 17000,
                 'stock' => 42,
                 'image_url' => 'https://images.unsplash.com/photo-1622597467836-f3285f2131b8?auto=format&fit=crop&w=900&q=80',
             ],
@@ -583,6 +588,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Berry Recovery Smoothie',
                 'description' => 'Smoothie berry untuk recovery setelah strength training.',
                 'price' => 32000,
+                'cost_price' => 20000,
                 'stock' => 24,
                 'image_url' => 'https://images.unsplash.com/photo-1505252585461-04db1eb84625?auto=format&fit=crop&w=900&q=80',
             ],
@@ -592,6 +598,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Plant Protein Sachet',
                 'description' => 'Protein nabati praktis untuk kebutuhan harian member aktif.',
                 'price' => 45000,
+                'cost_price' => 30000,
                 'stock' => 35,
                 'image_url' => 'https://images.unsplash.com/photo-1593095948071-474c5cc2989d?auto=format&fit=crop&w=900&q=80',
             ],
@@ -601,6 +608,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Electrolyte Hydration Pack',
                 'description' => 'Elektrolit rendah gula untuk hidrasi saat latihan.',
                 'price' => 39000,
+                'cost_price' => 25000,
                 'stock' => 40,
                 'image_url' => 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=900&q=80',
             ],
@@ -636,7 +644,10 @@ class DatabaseSeeder extends Seeder
             ], [
                 'quantity' => $quantity,
                 'unit_price' => $product->price,
+                'unit_cost' => $product->cost_price,
                 'subtotal' => (float) $product->price * $quantity,
+                'subtotal_cost' => (float) $product->cost_price * $quantity,
+                'profit_amount' => (((float) $product->price - (float) $product->cost_price) * $quantity),
             ]);
         }
     }

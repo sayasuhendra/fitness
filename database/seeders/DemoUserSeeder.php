@@ -7,6 +7,7 @@ namespace Database\Seeders;
 use App\Models\Member;
 use App\Models\Trainer;
 use App\Models\User;
+use App\Support\AdminShift;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
@@ -43,6 +44,20 @@ class DemoUserSeeder extends Seeder
             phone: '081100000005',
         );
 
+        $locationAdminShift1 = $this->upsertUser(
+            name: 'Admin Lokasi Shift 1',
+            email: 'admin.lokasi.shift1@akhwatgym.test',
+            phone: '081100000006',
+            adminShift: AdminShift::SHIFT_1,
+        );
+
+        $locationAdminShift2 = $this->upsertUser(
+            name: 'Admin Lokasi Shift 2',
+            email: 'admin.lokasi.shift2@akhwatgym.test',
+            phone: '081100000007',
+            adminShift: AdminShift::SHIFT_2,
+        );
+
         $memberUser = $this->upsertUser(
             name: 'Aisyah Member',
             email: 'member@akhwatgym.test',
@@ -59,6 +74,8 @@ class DemoUserSeeder extends Seeder
             $owner->assignRole('Owner');
             $admin->assignRole('Super admin');
             $locationAdmin->assignRole('Admin di lokasi');
+            $locationAdminShift1->assignRole('Admin di lokasi');
+            $locationAdminShift2->assignRole('Admin di lokasi');
             $memberUser->assignRole('Member');
             $trainerUser->assignRole('Trainer');
         }
@@ -75,6 +92,7 @@ class DemoUserSeeder extends Seeder
             ['user_id' => $trainerUser->id],
             [
                 'specialization' => 'Pilates dan Strength',
+                'whatsapp_number' => '6281100000003',
                 'bio' => 'Trainer akhwat tersertifikasi yang fokus pada gerakan aman dan berkelanjutan.',
                 'is_active' => true,
             ],
@@ -84,17 +102,20 @@ class DemoUserSeeder extends Seeder
         $this->command?->line('  owner@akhwatgym.test / '.self::PASSWORD);
         $this->command?->line('  admin@akhwatgym.test / '.self::PASSWORD);
         $this->command?->line('  admin.lokasi@akhwatgym.test / '.self::PASSWORD);
+        $this->command?->line('  admin.lokasi.shift1@akhwatgym.test / '.self::PASSWORD);
+        $this->command?->line('  admin.lokasi.shift2@akhwatgym.test / '.self::PASSWORD);
         $this->command?->line('  member@akhwatgym.test / '.self::PASSWORD);
         $this->command?->line('  trainer@akhwatgym.test / '.self::PASSWORD);
     }
 
-    private function upsertUser(string $name, string $email, string $phone): User
+    private function upsertUser(string $name, string $email, string $phone, ?string $adminShift = null): User
     {
         return User::query()->updateOrCreate(
             ['email' => $email],
             [
                 'name' => $name,
                 'phone' => $phone,
+                'admin_shift' => $adminShift,
                 'password' => Hash::make(self::PASSWORD),
             ],
         );

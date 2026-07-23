@@ -6,6 +6,7 @@ namespace App\Actions\Payments;
 
 use App\Models\PaymentConfirmation;
 use App\Models\User;
+use App\Support\AdminShift;
 
 class RejectPaymentConfirmationAction
 {
@@ -15,6 +16,8 @@ class RejectPaymentConfirmationAction
             'status' => 'rejected',
             'admin_note' => $adminNote,
             'verified_by' => $admin->id,
+            'handled_shift' => AdminShift::forUser($admin),
+            'handled_date' => AdminShift::date()->toDateString(),
             'verified_at' => now(),
         ]);
 

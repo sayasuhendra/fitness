@@ -28,6 +28,12 @@ class TrainerForm
                             ->placeholder('Pilates, Yoga, Strength')
                             ->required()
                             ->maxLength(120),
+                        TextInput::make('whatsapp_number')
+                            ->label('Nomor WhatsApp PT')
+                            ->tel()
+                            ->placeholder('6281234567890')
+                            ->maxLength(32)
+                            ->helperText('Nomor ini ditampilkan di aplikasi agar member bisa membuat janji langsung.'),
                         Toggle::make('is_active')
                             ->label('Accepting schedules')
                             ->default(true)

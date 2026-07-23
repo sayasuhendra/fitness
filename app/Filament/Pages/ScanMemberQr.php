@@ -79,6 +79,7 @@ class ScanMemberQr extends Page
                 member: $member,
                 attendanceType: 'gym_visit',
                 location: $this->location,
+                admin: auth()->user(),
             );
 
             $this->lastCheckIn = [

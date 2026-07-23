@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
+use App\Support\AdminShift;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
@@ -32,6 +33,11 @@ class UserForm
                         TextInput::make('phone')
                             ->tel()
                             ->maxLength(32),
+                        Select::make('admin_shift')
+                            ->label('Shift Admin Lokasi')
+                            ->options(AdminShift::options())
+                            ->placeholder('Tidak ditetapkan')
+                            ->helperText('Isi untuk akun Admin di lokasi shift 1 atau shift 2.'),
                         Select::make('roles')
                             ->relationship('roles', 'name')
                             ->multiple()

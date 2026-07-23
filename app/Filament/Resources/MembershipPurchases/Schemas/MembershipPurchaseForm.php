@@ -15,7 +15,7 @@ class MembershipPurchaseForm
     {
         return $schema
             ->components([
-                Section::make('Member & Package')
+                Section::make('Member & Paket')
                     ->schema([
                         Select::make('member_id')
                             ->label('Member')
@@ -25,12 +25,13 @@ class MembershipPurchaseForm
                             ->preload()
                             ->required(),
                         Select::make('membership_package_id')
-                            ->label('Package')
+                            ->label('Paket')
                             ->relationship('package', 'name')
                             ->searchable()
                             ->preload()
                             ->required(),
                         Select::make('status')
+                            ->label('Status')
                             ->options([
                                 'pending_payment' => 'Menunggu Pembayaran',
                                 'active' => 'Aktif',
@@ -41,37 +42,50 @@ class MembershipPurchaseForm
                             ->required(),
                     ])
                     ->columns(3),
-                Section::make('Payment & Validity')
+                Section::make('Pembayaran & Masa Aktif')
                     ->schema([
                         Select::make('payment_method')
+                            ->label('Metode Pembayaran')
                             ->options([
                                 'qris' => 'QRIS',
                                 'bank_transfer' => 'Transfer Bank',
                                 'cash' => 'Tunai',
+                                'manual_transfer' => 'Transfer Manual',
                             ])
                             ->required(),
                         TextInput::make('amount')
+                            ->label('Nominal')
                             ->numeric()
                             ->prefix('Rp')
+                            ->default(0)
+                            ->disabled()
+                            ->dehydrated()
                             ->required(),
                         TextInput::make('payment_reference')
+                            ->label('Kode Pembayaran')
                             ->maxLength(120),
                         DateTimePicker::make('starts_at')
+                            ->label('Mulai Aktif')
                             ->native(false),
                         DateTimePicker::make('expires_at')
+                            ->label('Berakhir')
                             ->native(false),
                     ])
                     ->columns(3),
-                Section::make('Visit Benefits')
+                Section::make('Benefit Kunjungan')
                     ->schema([
                         Toggle::make('includes_personal_trainer')
-                            ->label('Includes Personal Trainer'),
+                            ->label('Termasuk Personal Trainer')
+                            ->disabled()
+                            ->dehydrated(),
                         TextInput::make('visits_allowed')
-                            ->label('Maximum Visits')
+                            ->label('Maksimal Kunjungan')
                             ->numeric()
+                            ->disabled()
+                            ->dehydrated()
                             ->helperText('Leave empty for unlimited visits.'),
                         TextInput::make('visits_used')
-                            ->label('Visits Used')
+                            ->label('Kunjungan Terpakai')
                             ->numeric()
                             ->default(0)
                             ->required(),

@@ -20,6 +20,7 @@ class Product extends Model
         'name',
         'description',
         'price',
+        'cost_price',
         'stock',
         'image_url',
         'is_active',
@@ -27,7 +28,21 @@ class Product extends Model
 
     protected function casts(): array
     {
-        return ['price' => 'decimal:2', 'is_active' => 'boolean'];
+        return ['price' => 'decimal:2', 'cost_price' => 'decimal:2', 'is_active' => 'boolean'];
+    }
+
+    public function marginAmount(): float
+    {
+        return (float) $this->price - (float) $this->cost_price;
+    }
+
+    public function marginPercentage(): float
+    {
+        if ((float) $this->price <= 0.0) {
+            return 0.0;
+        }
+
+        return ($this->marginAmount() / (float) $this->price) * 100;
     }
 
     public function category(): BelongsTo

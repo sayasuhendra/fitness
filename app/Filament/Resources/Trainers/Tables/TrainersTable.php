@@ -25,6 +25,10 @@ class TrainersTable
                     ->toggleable(),
                 TextColumn::make('specialization')
                     ->searchable(),
+                TextColumn::make('whatsapp_number')
+                    ->label('WhatsApp PT')
+                    ->searchable()
+                    ->toggleable(),
                 IconColumn::make('is_active')
                     ->label('Active')
                     ->boolean(),

@@ -9,9 +9,9 @@ use App\Models\MembershipPurchase;
 use App\Models\Order;
 use App\Models\PaymentConfirmation;
 use App\Models\PersonalTrainerSession;
-use App\Models\Product;
 use App\Models\User;
 use App\Services\Notifications\MemberNotificationService;
+use App\Support\AdminShift;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -47,21 +47,6 @@ class ApprovePaymentConfirmationAction
             }
 
             if ($payable instanceof Order) {
-                $payable->loadMissing('items.product');
-
-                foreach ($payable->items as $item) {
-                    /** @var Product $product */
-                    $product = Product::query()->lockForUpdate()->findOrFail($item->product_id);
-
-                    if ($product->stock < $item->quantity) {
-                        throw ValidationException::withMessages([
-                            'stock' => "{$product->name} tidak memiliki stok yang cukup.",
-                        ]);
-                    }
-
-                    $product->decrement('stock', $item->quantity);
-                }
-
                 $payable->update(['status' => 'paid']);
             }
 
@@ -77,6 +62,8 @@ class ApprovePaymentConfirmationAction
                 'status' => 'approved',
                 'admin_note' => $adminNote,
                 'verified_by' => $admin->id,
+                'handled_shift' => AdminShift::forUser($admin),
+                'handled_date' => AdminShift::date()->toDateString(),
                 'verified_at' => now(),
             ]);
 

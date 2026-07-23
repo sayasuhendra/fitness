@@ -15,7 +15,7 @@ class Trainer extends Model
     /** @use HasFactory<TrainerFactory> */
     use HasFactory;
 
-    protected $fillable = ['user_id', 'specialization', 'bio', 'is_active'];
+    protected $fillable = ['user_id', 'specialization', 'whatsapp_number', 'bio', 'is_active'];
 
     protected function casts(): array
     {

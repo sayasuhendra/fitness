@@ -29,7 +29,7 @@ class FitnessClassFactory extends Factory
             'is_active' => true,
             'allow_drop_in' => true,
             'drop_in_price' => 75000,
-            'trainer_addon_price' => 50000,
+            'trainer_addon_price' => 0,
         ];
     }
 }

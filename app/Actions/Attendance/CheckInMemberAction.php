@@ -9,6 +9,8 @@ use App\Models\ClassBooking;
 use App\Models\Member;
 use App\Models\MembershipPurchase;
 use App\Models\PersonalTrainerSession;
+use App\Models\User;
+use App\Support\AdminShift;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -20,8 +22,9 @@ class CheckInMemberAction
         ?ClassBooking $booking = null,
         ?PersonalTrainerSession $personalTrainerSession = null,
         ?string $location = null,
+        ?User $admin = null,
     ): Attendance {
-        return DB::transaction(function () use ($member, $attendanceType, $booking, $personalTrainerSession, $location): Attendance {
+        return DB::transaction(function () use ($member, $attendanceType, $booking, $personalTrainerSession, $location, $admin): Attendance {
             $membership = $member->activeMembership();
 
             if ($booking !== null) {
@@ -79,6 +82,7 @@ class CheckInMemberAction
 
             return Attendance::query()->create([
                 'member_id' => $member->id,
+                ...AdminShift::stamp($admin),
                 'fitness_class_id' => $booking?->fitness_class_id,
                 'class_session_id' => $booking?->class_session_id,
                 'class_booking_id' => $booking?->id,

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Users\Tables;
 
+use App\Support\AdminShift;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -28,6 +29,12 @@ class UsersTable
                     ->label('Roles')
                     ->badge()
                     ->separator(', ')
+                    ->toggleable(),
+                TextColumn::make('admin_shift')
+                    ->label('Shift')
+                    ->formatStateUsing(fn (?string $state): string => AdminShift::label($state))
+                    ->placeholder('-')
+                    ->badge()
                     ->toggleable(),
                 TextColumn::make('created_at')
                     ->dateTime()

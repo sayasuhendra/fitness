@@ -33,6 +33,12 @@ final class BookClassAction
             $bookingDate = $session->session_date->toDateString();
             $accessType = $accessType === 'one_time' ? 'one_time' : 'membership';
 
+            if ($personalTrainerRequested) {
+                throw ValidationException::withMessages([
+                    'personal_trainer_requested' => 'Personal trainer hanya bisa dipesan melalui menu Personal Trainer.',
+                ]);
+            }
+
             if ($session->fitness_class_id !== $class->id) {
                 throw ValidationException::withMessages(['class_session_id' => 'This session does not belong to the selected class.']);
             }
@@ -55,10 +61,6 @@ final class BookClassAction
 
             if ($accessType === 'one_time' && ! $class->allow_drop_in) {
                 throw ValidationException::withMessages(['access_type' => 'This class does not accept one-time visitors.']);
-            }
-
-            if ($personalTrainerRequested && $accessType === 'membership' && ! $membership?->includes_personal_trainer) {
-                throw ValidationException::withMessages(['personal_trainer_requested' => 'Your membership does not include a personal trainer.']);
             }
 
             $bookedCount = $session->confirmedBookingsCount();
@@ -120,7 +122,7 @@ final class BookClassAction
             return 0;
         }
 
-        return (float) $class->drop_in_price + ($personalTrainerRequested ? (float) $class->trainer_addon_price : 0);
+        return (float) $class->drop_in_price;
     }
 
     private function resolveSession(FitnessClass $class, ?int $classSessionId, ?string $bookedForDate): ClassSession

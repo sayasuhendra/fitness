@@ -41,7 +41,6 @@ class FitnessClassForm
                                 'bomiya' => 'Bomiya',
                                 'poundfit' => 'Poundfit',
                                 'gym' => 'Gym',
-                                'personal_trainer' => 'Personal Trainer',
                                 'body_fat' => 'Body Fat',
                                 'general' => 'General',
                             ])

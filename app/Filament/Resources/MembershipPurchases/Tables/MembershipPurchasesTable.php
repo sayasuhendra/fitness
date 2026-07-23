@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\MembershipPurchases\Tables;
 
+use App\Support\AdminShift;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -20,7 +21,7 @@ class MembershipPurchasesTable
                     ->label('Member')
                     ->searchable(),
                 TextColumn::make('package.name')
-                    ->label('Package')
+                    ->label('Paket')
                     ->sortable(),
                 TextColumn::make('starts_at')
                     ->dateTime()
@@ -38,9 +39,23 @@ class MembershipPurchasesTable
                     })
                     ->searchable(),
                 TextColumn::make('payment_method')
-                    ->label('Payment')
+                    ->label('Pembayaran')
                     ->badge()
                     ->searchable(),
+                TextColumn::make('handler.name')
+                    ->label('Admin')
+                    ->placeholder('-')
+                    ->toggleable(),
+                TextColumn::make('handled_shift')
+                    ->label('Shift')
+                    ->formatStateUsing(fn (?string $state): string => AdminShift::label($state))
+                    ->placeholder('-')
+                    ->badge()
+                    ->toggleable(),
+                TextColumn::make('handled_date')
+                    ->label('Tanggal Shift')
+                    ->date()
+                    ->toggleable(),
                 IconColumn::make('includes_personal_trainer')
                     ->label('PT')
                     ->boolean(),
@@ -84,6 +99,7 @@ class MembershipPurchasesTable
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->poll('10s');
     }
 }

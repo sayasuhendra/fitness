@@ -17,6 +17,9 @@ class MembershipPurchase extends Model
 
     protected $fillable = [
         'member_id',
+        'handled_by',
+        'handled_shift',
+        'handled_date',
         'membership_package_id',
         'starts_at',
         'expires_at',
@@ -34,6 +37,7 @@ class MembershipPurchase extends Model
         return [
             'starts_at' => 'datetime',
             'expires_at' => 'datetime',
+            'handled_date' => 'date',
             'includes_personal_trainer' => 'boolean',
             'amount' => 'decimal:2',
         ];
@@ -42,6 +46,11 @@ class MembershipPurchase extends Model
     public function member(): BelongsTo
     {
         return $this->belongsTo(Member::class);
+    }
+
+    public function handler(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'handled_by');
     }
 
     public function package(): BelongsTo

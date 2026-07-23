@@ -23,6 +23,8 @@ class PaymentConfirmation extends Model
         'member_note',
         'admin_note',
         'verified_by',
+        'handled_shift',
+        'handled_date',
         'verified_at',
     ];
 
@@ -30,6 +32,7 @@ class PaymentConfirmation extends Model
     {
         return [
             'amount' => 'decimal:2',
+            'handled_date' => 'date',
             'verified_at' => 'datetime',
         ];
     }

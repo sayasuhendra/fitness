@@ -5,6 +5,7 @@ namespace App\Filament\Resources\PaymentConfirmations\Tables;
 use App\Actions\Payments\ApprovePaymentConfirmationAction;
 use App\Actions\Payments\RejectPaymentConfirmationAction;
 use App\Filament\Resources\PaymentConfirmations\PaymentConfirmationResource;
+use App\Support\AdminShift;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -52,6 +53,16 @@ class PaymentConfirmationsTable
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('verifier.name')
+                    ->label('Admin')
+                    ->placeholder('-')
+                    ->toggleable(),
+                TextColumn::make('handled_shift')
+                    ->label('Shift')
+                    ->formatStateUsing(fn (?string $state): string => AdminShift::label($state))
+                    ->placeholder('-')
+                    ->badge()
+                    ->toggleable(),
             ])
             ->filters([
                 SelectFilter::make('status')
@@ -124,6 +135,7 @@ class PaymentConfirmationsTable
                     DeleteBulkAction::make(),
                 ]),
             ])
+            ->poll('10s')
             ->defaultSort('created_at', 'desc');
     }
 }

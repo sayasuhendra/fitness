@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Attendances\Tables;
 
+use App\Support\AdminShift;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -39,8 +40,20 @@ class AttendancesTable
                     ->dateTime()
                     ->sortable(),
                 TextColumn::make('location')
+                    ->label('Lokasi')
                     ->searchable(),
+                TextColumn::make('handler.name')
+                    ->label('Admin')
+                    ->placeholder('-')
+                    ->toggleable(),
+                TextColumn::make('handled_shift')
+                    ->label('Shift')
+                    ->formatStateUsing(fn (?string $state): string => AdminShift::label($state))
+                    ->placeholder('-')
+                    ->badge()
+                    ->toggleable(),
                 TextColumn::make('status')
+                    ->label('Status')
                     ->badge()
                     ->color(fn (string $state): string => $state === 'present' ? 'success' : 'danger'),
             ])
@@ -66,6 +79,7 @@ class AttendancesTable
                     DeleteBulkAction::make(),
                 ]),
             ])
+            ->poll('10s')
             ->defaultSort('check_in_time', 'desc');
     }
 }

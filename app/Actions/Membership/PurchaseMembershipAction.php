@@ -8,19 +8,22 @@ use App\DTO\PurchaseMembershipData;
 use App\Models\Member;
 use App\Models\MembershipPackage;
 use App\Models\MembershipPurchase;
+use App\Models\User;
 use App\Services\Notifications\MemberNotificationService;
+use App\Support\AdminShift;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 final class PurchaseMembershipAction
 {
-    public function execute(Member $member, PurchaseMembershipData $data): MembershipPurchase
+    public function execute(Member $member, PurchaseMembershipData $data, ?User $admin = null): MembershipPurchase
     {
-        $purchase = DB::transaction(function () use ($member, $data): MembershipPurchase {
+        $purchase = DB::transaction(function () use ($member, $data, $admin): MembershipPurchase {
             $package = MembershipPackage::query()->where('is_active', true)->findOrFail($data->packageId);
 
             return MembershipPurchase::query()->create([
                 'member_id' => $member->id,
+                ...AdminShift::stamp($admin),
                 'membership_package_id' => $package->id,
                 'starts_at' => null,
                 'expires_at' => null,
