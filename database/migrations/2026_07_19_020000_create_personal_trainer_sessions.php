@@ -13,7 +13,7 @@ return new class extends Migration
         Schema::create('personal_trainer_sessions', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('member_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('trainer_id')->constrained()->restrictOnDelete();
+            $table->foreignId('trainer_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('membership_purchase_id')->nullable()->constrained()->nullOnDelete();
             $table->dateTime('scheduled_at');
             $table->unsignedInteger('duration_minutes')->default(60);

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Trainers\Schemas;
+namespace App\Filament\Resources\PersonalTrainers\Schemas;
 
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
@@ -13,14 +13,14 @@ use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\Rules\Password;
 
-class TrainerForm
+class PersonalTrainerForm
 {
     public static function configure(Schema $schema): Schema
     {
         return $schema
             ->components([
-                Section::make('Akun Instruktur Kelas')
-                    ->description('Pilih akun yang sudah ada, atau buat akun baru untuk instruktur kelas.')
+                Section::make('Akun Personal Trainer')
+                    ->description('Pilih akun yang sudah ada, atau buat akun baru untuk personal trainer.')
                     ->schema([
                         Radio::make('user_mode')
                             ->label('Cara menghubungkan akun')
@@ -39,7 +39,7 @@ class TrainerForm
                                 name: 'user',
                                 titleAttribute: 'name',
                                 modifyQueryUsing: fn (Builder $query, string $operation): Builder => $operation === 'create'
-                                    ? $query->whereDoesntHave('trainer')
+                                    ? $query->whereDoesntHave('personalTrainer')
                                     : $query
                             )
                             ->getOptionLabelFromRecordUsing(fn ($record): string => "{$record->name} ({$record->email})")
@@ -77,19 +77,21 @@ class TrainerForm
                             ->dehydrated(fn (Get $get, string $operation): bool => $operation === 'create' && $get('user_mode') === 'new'),
                     ])
                     ->columns(2),
-                Section::make('Profil Instruktur Kelas')
-                    ->description('Data ini dipakai untuk jadwal kelas bersama seperti Zumba, Yoga, Aerobic, dan kelas sejenis.')
+                Section::make('Profil Personal Trainer')
+                    ->description('Data ini tampil di aplikasi mobile saat member membuat janji PT.')
                     ->schema([
                         TextInput::make('specialization')
                             ->label('Keahlian')
-                            ->placeholder('Pilates, Yoga, Strength')
+                            ->placeholder('Strength Training, Fat Loss, Body Shaping')
                             ->required()
                             ->maxLength(120),
                         TextInput::make('whatsapp_number')
-                            ->label('Nomor WhatsApp Instruktur')
+                            ->label('Nomor WhatsApp')
                             ->tel()
-                            ->placeholder('6281234567890')
-                            ->maxLength(32),
+                            ->placeholder('628111513335')
+                            ->maxLength(32)
+                            ->required()
+                            ->helperText('Gunakan format internasional tanpa tanda +. Contoh: 628111513335.'),
                         Toggle::make('is_active')
                             ->label('Aktif menerima jadwal')
                             ->default(true)

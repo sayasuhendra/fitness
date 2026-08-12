@@ -17,7 +17,7 @@ class StorePersonalTrainerSessionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'trainer_id' => ['required', 'integer', Rule::exists('trainers', 'id')],
+            'trainer_id' => ['required', 'integer', Rule::exists('personal_trainers', 'id')],
             'scheduled_at' => ['required', 'date', 'after:now'],
             'duration_minutes' => ['nullable', 'integer', 'min:30', 'max:180'],
             'access_type' => ['required', 'string', Rule::in(['membership', 'one_time'])],

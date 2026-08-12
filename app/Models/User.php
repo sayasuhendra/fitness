@@ -47,6 +47,11 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasOne(Trainer::class);
     }
 
+    public function personalTrainer(): HasOne
+    {
+        return $this->hasOne(PersonalTrainer::class);
+    }
+
     public function deviceTokens(): HasMany
     {
         return $this->hasMany(DeviceToken::class);

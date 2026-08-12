@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\PersonalTraining\StorePersonalTrainerSessionRequest;
 use App\Http\Resources\PersonalTrainerSessionResource;
+use App\Models\PersonalTrainer;
 use App\Models\PersonalTrainerSession;
 use App\Services\ApiResponder;
 use App\Services\Notifications\MemberNotificationService;
@@ -19,7 +20,7 @@ class PersonalTrainerSessionController extends Controller
     public function index(Request $request): JsonResponse
     {
         $sessions = $request->user()->member->personalTrainerSessions()
-            ->with(['trainer.user', 'paymentConfirmations'])
+            ->with(['personalTrainer.user', 'trainer.user', 'paymentConfirmations'])
             ->latest('scheduled_at')
             ->get();
 
@@ -36,9 +37,14 @@ class PersonalTrainerSessionController extends Controller
             throw ValidationException::withMessages(['membership' => 'Paket personal trainer aktif diperlukan untuk membuat jadwal PT.']);
         }
 
+        $personalTrainer = PersonalTrainer::query()
+            ->where('is_active', true)
+            ->findOrFail((int) $request->validated('trainer_id'));
+
         $session = PersonalTrainerSession::query()->create([
             'member_id' => $member->id,
-            'trainer_id' => (int) $request->validated('trainer_id'),
+            'trainer_id' => null,
+            'personal_trainer_id' => $personalTrainer->id,
             'membership_purchase_id' => $accessType === 'membership' ? $membership?->id : null,
             'scheduled_at' => $request->validated('scheduled_at'),
             'duration_minutes' => $request->validated('duration_minutes') ?? 60,
@@ -62,6 +68,6 @@ class PersonalTrainerSessionController extends Controller
                 : '/personal-training',
         );
 
-        return ApiResponder::success(new PersonalTrainerSessionResource($session->load(['trainer.user', 'paymentConfirmations'])), 'Personal trainer session created', 201);
+        return ApiResponder::success(new PersonalTrainerSessionResource($session->load(['personalTrainer.user', 'trainer.user', 'paymentConfirmations'])), 'Personal trainer session created', 201);
     }
 }

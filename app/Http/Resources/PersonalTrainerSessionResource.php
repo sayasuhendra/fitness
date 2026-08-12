@@ -11,9 +11,17 @@ class PersonalTrainerSessionResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $trainer = $this->personalTrainer ?? $this->trainer;
+        $whatsappNumber = $trainer?->whatsapp_number ?: $trainer?->user?->phone;
+        $normalizedWhatsappNumber = $whatsappNumber === null
+            ? null
+            : preg_replace('/\D+/', '', $whatsappNumber);
+
         return [
             'id' => $this->id,
-            'trainer_name' => $this->trainer?->user?->name,
+            'trainer_name' => $trainer?->user?->name,
+            'trainer_whatsapp_number' => $normalizedWhatsappNumber,
+            'trainer_whatsapp_url' => $normalizedWhatsappNumber ? 'https://wa.me/'.$normalizedWhatsappNumber : null,
             'scheduled_at' => $this->scheduled_at->toISOString(),
             'duration_minutes' => $this->duration_minutes,
             'status' => $this->status,

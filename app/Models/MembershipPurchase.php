@@ -63,9 +63,9 @@ class MembershipPurchase extends Model
         return $this->morphMany(PaymentConfirmation::class, 'payable');
     }
 
-    public function hasRemainingVisits(): bool
+    public function hasRemainingVisits(int $units = 1): bool
     {
-        return $this->visits_allowed === null || $this->visits_used < $this->visits_allowed;
+        return $this->visits_allowed === null || ($this->visits_used + $units) <= $this->visits_allowed;
     }
 
     public function remainingVisits(): ?int

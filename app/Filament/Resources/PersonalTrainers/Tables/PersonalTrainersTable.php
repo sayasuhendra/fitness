@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Trainers\Tables;
+namespace App\Filament\Resources\PersonalTrainers\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -10,40 +10,33 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
-class TrainersTable
+class PersonalTrainersTable
 {
     public static function configure(Table $table): Table
     {
         return $table
             ->columns([
                 TextColumn::make('user.name')
-                    ->label('Instruktur')
+                    ->label('Nama')
                     ->searchable(),
-                TextColumn::make('user.email')
-                    ->label('Email')
-                    ->searchable()
-                    ->toggleable(),
                 TextColumn::make('specialization')
+                    ->label('Keahlian')
                     ->searchable(),
                 TextColumn::make('whatsapp_number')
                     ->label('WhatsApp')
-                    ->searchable()
-                    ->toggleable(),
+                    ->searchable(),
                 IconColumn::make('is_active')
-                    ->label('Active')
+                    ->label('Aktif')
                     ->boolean(),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label('Update Terakhir')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 TernaryFilter::make('is_active')
-                    ->label('Active trainers'),
+                    ->label('Personal trainer aktif'),
             ])
             ->recordActions([
                 EditAction::make(),

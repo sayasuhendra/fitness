@@ -11,12 +11,18 @@ class TrainerResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $whatsappNumber = $this->whatsapp_number ?: $this->user?->phone;
+        $normalizedWhatsappNumber = $whatsappNumber === null
+            ? null
+            : preg_replace('/\D+/', '', $whatsappNumber);
+
         return [
             'id' => $this->id,
             'name' => $this->user?->name,
             'email' => $this->user?->email,
-            'phone' => $this->whatsapp_number ?: $this->user?->phone,
-            'whatsapp_number' => $this->whatsapp_number ?: $this->user?->phone,
+            'phone' => $normalizedWhatsappNumber,
+            'whatsapp_number' => $normalizedWhatsappNumber,
+            'whatsapp_url' => $normalizedWhatsappNumber ? 'https://wa.me/'.$normalizedWhatsappNumber : null,
             'avatar_url' => $this->user?->avatar_url,
             'specialization' => $this->specialization,
             'bio' => $this->bio,

@@ -23,8 +23,9 @@ class CheckInMemberAction
         ?PersonalTrainerSession $personalTrainerSession = null,
         ?string $location = null,
         ?User $admin = null,
+        int $sessionUnits = 1,
     ): Attendance {
-        return DB::transaction(function () use ($member, $attendanceType, $booking, $personalTrainerSession, $location, $admin): Attendance {
+        return DB::transaction(function () use ($member, $attendanceType, $booking, $personalTrainerSession, $location, $admin, $sessionUnits): Attendance {
             $membership = $member->activeMembership();
 
             if ($booking !== null) {
@@ -61,8 +62,17 @@ class CheckInMemberAction
 
             $existing = Attendance::query()
                 ->where('member_id', $member->id)
-                ->when($booking, fn ($query) => $query->where('class_booking_id', $booking->id))
-                ->when($personalTrainerSession, fn ($query) => $query->where('personal_trainer_session_id', $personalTrainerSession->id))
+                ->where('attendance_type', $attendanceType)
+                ->when(
+                    $booking,
+                    fn ($query) => $query->where('class_booking_id', $booking->id),
+                    fn ($query) => $query->whereNull('class_booking_id'),
+                )
+                ->when(
+                    $personalTrainerSession,
+                    fn ($query) => $query->where('personal_trainer_session_id', $personalTrainerSession->id),
+                    fn ($query) => $query->whereNull('personal_trainer_session_id'),
+                )
                 ->whereDate('check_in_time', now()->toDateString())
                 ->first();
 
@@ -71,16 +81,16 @@ class CheckInMemberAction
             }
 
             if ($membership instanceof MembershipPurchase) {
-                if (! $membership->hasRemainingVisits()) {
+                if (! $membership->hasRemainingVisits($sessionUnits)) {
                     throw ValidationException::withMessages(['membership' => 'Kuota kunjungan membership sudah habis.']);
                 }
 
                 if ($membership->visits_allowed !== null) {
-                    $membership->increment('visits_used');
+                    $membership->increment('visits_used', $sessionUnits);
                 }
             }
 
-            return Attendance::query()->create([
+            $attendance = Attendance::query()->create([
                 'member_id' => $member->id,
                 ...AdminShift::stamp($admin),
                 'fitness_class_id' => $booking?->fitness_class_id,
@@ -93,6 +103,15 @@ class CheckInMemberAction
                 'status' => 'present',
                 'location' => $location ?? 'Akhwat Gym Studio',
             ]);
+
+            if ($personalTrainerSession !== null) {
+                $personalTrainerSession->update([
+                    'status' => 'completed',
+                    'completed_at' => now(),
+                ]);
+            }
+
+            return $attendance;
         });
     }
 

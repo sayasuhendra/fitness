@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PersonalTrainerSessions\Tables;
 
+use App\Actions\Attendance\CheckInMemberAction;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -20,7 +21,13 @@ class PersonalTrainerSessionsTable
                     ->label('Member')
                     ->searchable(),
                 TextColumn::make('trainer.user.name')
-                    ->label('Trainer')
+                    ->label('Instruktur Lama')
+                    ->placeholder('-')
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->searchable(),
+                TextColumn::make('personalTrainer.user.name')
+                    ->label('Personal Trainer')
+                    ->placeholder('-')
                     ->searchable(),
                 TextColumn::make('scheduled_at')
                     ->label('Jadwal')
@@ -52,13 +59,46 @@ class PersonalTrainerSessionsTable
                         'completed' => 'Selesai',
                         'cancelled' => 'Dibatalkan',
                     ]),
-                SelectFilter::make('trainer_id')
-                    ->label('Trainer')
-                    ->relationship('trainer.user', 'name')
+                SelectFilter::make('personal_trainer_id')
+                    ->label('Personal Trainer')
+                    ->relationship('personalTrainer.user', 'name')
                     ->searchable()
                     ->preload(),
             ])
             ->recordActions([
+                Action::make('check_in_once')
+                    ->label('Check-In 1 Sesi')
+                    ->icon('heroicon-o-qr-code')
+                    ->color('info')
+                    ->visible(fn ($record): bool => $record->status === 'scheduled')
+                    ->action(function ($record): void {
+                        app(CheckInMemberAction::class)->execute(
+                            member: $record->member,
+                            attendanceType: 'personal_trainer_session',
+                            personalTrainerSession: $record,
+                            location: 'Personal Trainer',
+                            admin: auth()->user(),
+                            sessionUnits: 1,
+                        );
+                    }),
+                Action::make('check_in_double')
+                    ->label('Check-In 2 Sesi')
+                    ->icon('heroicon-o-qr-code')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->modalHeading('Check-in 2 sesi personal trainer?')
+                    ->modalDescription('Kuota membership akan dikurangi 2 sesi jika paket member memiliki batas kunjungan.')
+                    ->visible(fn ($record): bool => $record->status === 'scheduled')
+                    ->action(function ($record): void {
+                        app(CheckInMemberAction::class)->execute(
+                            member: $record->member,
+                            attendanceType: 'personal_trainer_session',
+                            personalTrainerSession: $record,
+                            location: 'Personal Trainer',
+                            admin: auth()->user(),
+                            sessionUnits: 2,
+                        );
+                    }),
                 Action::make('complete')
                     ->label('Tandai Selesai')
                     ->icon('heroicon-o-check-circle')

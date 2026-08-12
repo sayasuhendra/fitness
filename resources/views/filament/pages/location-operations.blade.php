@@ -356,7 +356,7 @@
         <div class="location-operations-card">
         <x-filament::section>
             <x-slot name="heading">Check-In Manual</x-slot>
-            <x-slot name="description">Gunakan saat member tidak membawa HP atau scanner tidak dipakai.</x-slot>
+            <x-slot name="description">Pilih jenis check-in: gym, kelas, atau personal trainer.</x-slot>
 
             <div class="location-operations-form-grid">
                 <label class="block">
@@ -369,6 +369,53 @@
                     </select>
                     @error('checkInMemberId') <span class="text-sm text-danger-600">{{ $message }}</span> @enderror
                 </label>
+
+                <label class="block">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Jenis Check-In</span>
+                    <select wire:model.live="checkInType" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                        <option value="gym_visit">Gym</option>
+                        <option value="class_attendance">Kelas</option>
+                        <option value="personal_trainer_session">Personal Trainer</option>
+                    </select>
+                    @error('checkInType') <span class="text-sm text-danger-600">{{ $message }}</span> @enderror
+                </label>
+
+                @if ($checkInType === 'class_attendance')
+                    <label class="block">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Booking Kelas</span>
+                        <select wire:model="checkInClassBookingId" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                            <option value="">Pilih booking kelas</option>
+                            @foreach ($this->classBookingOptions() as $id => $label)
+                                <option value="{{ $id }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                        @error('checkInClassBookingId') <span class="text-sm text-danger-600">{{ $message }}</span> @enderror
+                    </label>
+                @endif
+
+                @if ($checkInType === 'personal_trainer_session')
+                    <label class="block">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Sesi Personal Trainer</span>
+                        <select wire:model="checkInPersonalTrainerSessionId" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                            <option value="">Pilih sesi personal trainer</option>
+                            @foreach ($this->personalTrainerSessionOptions() as $id => $label)
+                                <option value="{{ $id }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                        @error('checkInPersonalTrainerSessionId') <span class="text-sm text-danger-600">{{ $message }}</span> @enderror
+                    </label>
+                @endif
+
+                @if ($checkInType !== 'gym_visit')
+                    <label class="block">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Jumlah Sesi</span>
+                        <select wire:model="checkInSessionUnits" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                            <option value="1">1 sesi</option>
+                            <option value="2">2 sesi sekaligus</option>
+                        </select>
+                        @error('checkInSessionUnits') <span class="text-sm text-danger-600">{{ $message }}</span> @enderror
+                    </label>
+                @endif
 
                 <label class="block">
                     <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Lokasi</span>

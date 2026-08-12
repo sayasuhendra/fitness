@@ -10,6 +10,8 @@ use App\DTO\CheckoutData;
 use App\Models\Member;
 use App\Models\MembershipPackage;
 use App\Models\MembershipPurchase;
+use App\Models\ClassBooking;
+use App\Models\PersonalTrainerSession;
 use App\Models\Product;
 use App\Models\User;
 use App\Support\AdminShift;
@@ -65,6 +67,14 @@ class LocationOperations extends Page
 
     public ?int $checkInMemberId = null;
 
+    public string $checkInType = 'gym_visit';
+
+    public ?int $checkInClassBookingId = null;
+
+    public ?int $checkInPersonalTrainerSessionId = null;
+
+    public int $checkInSessionUnits = 1;
+
     public string $checkInLocation = 'Akhwat Gym Studio';
 
     public function getTitle(): string|Htmlable
@@ -115,6 +125,44 @@ class LocationOperations extends Page
             ->get()
             ->mapWithKeys(fn (Product $product): array => [
                 $product->id => "{$product->name} - Stok {$product->stock} - Rp ".number_format((float) $product->price, 0, ',', '.'),
+            ])
+            ->all();
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function classBookingOptions(): array
+    {
+        return ClassBooking::query()
+            ->with(['member.user', 'fitnessClass'])
+            ->where('status', 'confirmed')
+            ->latest('booked_at')
+            ->limit(100)
+            ->get()
+            ->mapWithKeys(fn (ClassBooking $booking): array => [
+                $booking->id => ($booking->member?->user?->name ?? "Member #{$booking->member_id}")
+                    .' - '.($booking->fitnessClass?->name ?? 'Kelas')
+                    .' #'.$booking->id,
+            ])
+            ->all();
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function personalTrainerSessionOptions(): array
+    {
+        return PersonalTrainerSession::query()
+            ->with(['member.user', 'personalTrainer.user', 'trainer.user'])
+            ->where('status', 'scheduled')
+            ->latest('scheduled_at')
+            ->limit(100)
+            ->get()
+            ->mapWithKeys(fn (PersonalTrainerSession $session): array => [
+                $session->id => ($session->member?->user?->name ?? "Member #{$session->member_id}")
+                    .' - '.($session->personalTrainer?->user?->name ?? $session->trainer?->user?->name ?? 'Personal Trainer')
+                    .' - '.$session->scheduled_at?->format('d M H:i'),
             ])
             ->all();
     }
@@ -304,15 +352,29 @@ class LocationOperations extends Page
     {
         $data = $this->validate([
             'checkInMemberId' => ['required', 'integer', 'exists:members,id'],
+            'checkInType' => ['required', 'string', 'in:gym_visit,class_attendance,personal_trainer_session'],
+            'checkInClassBookingId' => ['nullable', 'required_if:checkInType,class_attendance', 'integer', 'exists:class_bookings,id'],
+            'checkInPersonalTrainerSessionId' => ['nullable', 'required_if:checkInType,personal_trainer_session', 'integer', 'exists:personal_trainer_sessions,id'],
+            'checkInSessionUnits' => ['required', 'integer', 'in:1,2'],
             'checkInLocation' => ['required', 'string', 'max:160'],
         ]);
 
         try {
+            $booking = $data['checkInType'] === 'class_attendance'
+                ? ClassBooking::query()->with('fitnessClass')->findOrFail((int) $data['checkInClassBookingId'])
+                : null;
+            $personalTrainerSession = $data['checkInType'] === 'personal_trainer_session'
+                ? PersonalTrainerSession::query()->findOrFail((int) $data['checkInPersonalTrainerSessionId'])
+                : null;
+
             $attendance = app(CheckInMemberAction::class)->execute(
                 member: Member::query()->with('user')->findOrFail((int) $data['checkInMemberId']),
-                attendanceType: 'gym_visit',
+                attendanceType: $data['checkInType'],
+                booking: $booking,
+                personalTrainerSession: $personalTrainerSession,
                 location: $data['checkInLocation'],
                 admin: auth()->user(),
+                sessionUnits: (int) $data['checkInSessionUnits'],
             );
 
             Notification::make()

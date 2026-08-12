@@ -14,6 +14,7 @@ use App\Models\MembershipPackage;
 use App\Models\MembershipPurchase;
 use App\Models\Order;
 use App\Models\PaymentConfirmation;
+use App\Models\PersonalTrainer;
 use App\Models\PersonalTrainerSession;
 use App\Models\Product;
 use App\Models\ProductCategory;
@@ -211,7 +212,7 @@ class FitnessApiTest extends TestCase
             'membership_package_id' => $package->id,
             'includes_personal_trainer' => true,
         ]);
-        $trainer = Trainer::factory()->create();
+        $trainer = PersonalTrainer::factory()->create();
 
         $this->postJson('/api/v1/personal-trainer-sessions', [
             'trainer_id' => $trainer->id,
@@ -223,7 +224,7 @@ class FitnessApiTest extends TestCase
 
         $this->assertDatabaseHas('personal_trainer_sessions', [
             'member_id' => $member->id,
-            'trainer_id' => $trainer->id,
+            'personal_trainer_id' => $trainer->id,
             'status' => 'scheduled',
         ]);
     }
@@ -250,7 +251,7 @@ class FitnessApiTest extends TestCase
     public function test_one_time_personal_trainer_session_waits_for_payment_approval(): void
     {
         $member = $this->actingMember();
-        $trainer = Trainer::factory()->create();
+        $trainer = PersonalTrainer::factory()->create();
 
         $response = $this->postJson('/api/v1/personal-trainer-sessions', [
             'trainer_id' => $trainer->id,
@@ -280,7 +281,7 @@ class FitnessApiTest extends TestCase
     public function test_member_can_list_active_trainers(): void
     {
         $this->actingMember();
-        $trainer = Trainer::factory()->create(['is_active' => true]);
+        $trainer = PersonalTrainer::factory()->create(['is_active' => true]);
 
         $this->getJson('/api/v1/trainers')
             ->assertOk()

@@ -6,6 +6,7 @@ namespace Database\Seeders;
 
 use App\Models\FitnessClass;
 use App\Models\MembershipPackage;
+use App\Models\PersonalTrainer;
 use App\Models\Trainer;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -21,11 +22,57 @@ class AkhwatGymPackageScheduleSeeder extends Seeder
     public function run(): void
     {
         $trainers = $this->seedTrainers();
+        $this->seedPersonalTrainers();
 
         $this->seedPackages();
         $this->seedSchedules($trainers);
 
         $this->command?->info('Akhwat Gym packages and weekly schedules are ready.');
+    }
+
+    private function seedPersonalTrainers(): void
+    {
+        Role::findOrCreate('Trainer', 'web');
+
+        $personalTrainerSeeds = [
+            'PT Nisa' => [
+                'email' => 'pt.nisa@akhwatgym.test',
+                'phone' => '628111513335',
+                'specialization' => 'Strength Training, Fat Loss',
+                'bio' => 'Personal trainer Akhwat Gym untuk latihan beban, fat loss, dan pembentukan pola latihan member.',
+            ],
+            'PT Hana' => [
+                'email' => 'pt.hana@akhwatgym.test',
+                'phone' => '6281212345678',
+                'specialization' => 'Body Shaping, Functional Training',
+                'bio' => 'Personal trainer Akhwat Gym untuk body shaping, latihan pemula, dan functional training.',
+            ],
+        ];
+
+        foreach ($personalTrainerSeeds as $name => $seed) {
+            $user = User::query()->updateOrCreate(
+                ['email' => $seed['email']],
+                [
+                    'name' => $name,
+                    'phone' => $seed['phone'],
+                    'password' => Hash::make(DemoUserSeeder::PASSWORD),
+                ],
+            );
+
+            if (method_exists($user, 'assignRole')) {
+                $user->assignRole('Trainer');
+            }
+
+            PersonalTrainer::query()->updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'specialization' => $seed['specialization'],
+                    'whatsapp_number' => $seed['phone'],
+                    'bio' => $seed['bio'],
+                    'is_active' => true,
+                ],
+            );
+        }
     }
 
     /**

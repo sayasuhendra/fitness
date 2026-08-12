@@ -24,12 +24,11 @@ class PersonalTrainerSessionForm
                             ->searchable()
                             ->preload()
                             ->required(),
-                        Select::make('trainer_id')
-                            ->label('Trainer')
-                            ->relationship('trainer', 'id')
-                            ->getOptionLabelFromRecordUsing(fn ($record): string => $record->user?->name ?? "Trainer #{$record->id}")
+                        Select::make('personal_trainer_id')
+                            ->label('Personal Trainer')
+                            ->relationship('personalTrainer', 'id')
+                            ->getOptionLabelFromRecordUsing(fn ($record): string => $record->user?->name ?? "Personal Trainer #{$record->id}")
                             ->searchable()
-                            ->preload()
                             ->required(),
                         Select::make('membership_purchase_id')
                             ->label('Membership PT')

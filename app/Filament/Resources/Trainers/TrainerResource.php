@@ -21,6 +21,12 @@ class TrainerResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::AcademicCap;
 
+    protected static ?string $navigationLabel = 'Instruktur Kelas';
+
+    protected static ?string $modelLabel = 'Instruktur Kelas';
+
+    protected static ?string $pluralModelLabel = 'Instruktur Kelas';
+
     protected static string|UnitEnum|null $navigationGroup = 'People';
 
     protected static ?int $navigationSort = 20;

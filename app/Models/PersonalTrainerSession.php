@@ -14,6 +14,7 @@ class PersonalTrainerSession extends Model
     protected $fillable = [
         'member_id',
         'trainer_id',
+        'personal_trainer_id',
         'membership_purchase_id',
         'scheduled_at',
         'duration_minutes',
@@ -44,6 +45,11 @@ class PersonalTrainerSession extends Model
     public function trainer(): BelongsTo
     {
         return $this->belongsTo(Trainer::class);
+    }
+
+    public function personalTrainer(): BelongsTo
+    {
+        return $this->belongsTo(PersonalTrainer::class);
     }
 
     public function membershipPurchase(): BelongsTo
