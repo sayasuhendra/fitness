@@ -21,6 +21,8 @@ use App\Models\MembershipPackage;
 use App\Models\MembershipPurchase;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\PersonalTrainer;
+use App\Models\PersonalTrainerSession;
 use App\Models\Product;
 use App\Models\Trainer;
 use App\Models\User;
@@ -557,6 +559,70 @@ class AdminPanelTest extends TestCase
         $this->assertSame(3, $drink->fresh()->stock);
         $this->assertSame(3, $snack->fresh()->stock);
         $this->assertEquals(32000.0, $order->items->sum('profit_amount'));
+    }
+
+    public function test_location_operations_manual_class_check_in_uses_booking_member(): void
+    {
+        $admin = $this->adminWithSeededRole('Admin di lokasi');
+        $member = Member::factory()->create();
+        $otherMember = Member::factory()->create();
+        $booking = ClassBooking::factory()->create([
+            'member_id' => $member->id,
+            'access_type' => 'one_time',
+            'status' => 'confirmed',
+        ]);
+
+        $this->actingAs($admin);
+
+        Livewire::test(LocationOperations::class)
+            ->set('checkInType', 'class_attendance')
+            ->set('checkInMemberId', $otherMember->id)
+            ->set('checkInClassBookingId', $booking->id)
+            ->set('checkInSessionUnits', 2)
+            ->set('checkInLocation', 'Kelas Akhwat Gym')
+            ->call('manualCheckIn');
+
+        $this->assertDatabaseHas('attendances', [
+            'member_id' => $member->id,
+            'class_booking_id' => $booking->id,
+            'attendance_type' => 'class_attendance',
+            'handled_by' => $admin->id,
+        ]);
+    }
+
+    public function test_location_operations_manual_personal_trainer_check_in_uses_session_member(): void
+    {
+        $admin = $this->adminWithSeededRole('Admin di lokasi');
+        $member = Member::factory()->create();
+        $otherMember = Member::factory()->create();
+        $personalTrainer = PersonalTrainer::factory()->create();
+        $session = PersonalTrainerSession::query()->create([
+            'member_id' => $member->id,
+            'personal_trainer_id' => $personalTrainer->id,
+            'scheduled_at' => now()->addHour(),
+            'duration_minutes' => 60,
+            'status' => 'scheduled',
+            'access_type' => 'one_time',
+            'amount' => 80000,
+        ]);
+
+        $this->actingAs($admin);
+
+        Livewire::test(LocationOperations::class)
+            ->set('checkInType', 'personal_trainer_session')
+            ->set('checkInMemberId', $otherMember->id)
+            ->set('checkInPersonalTrainerSessionId', $session->id)
+            ->set('checkInSessionUnits', 2)
+            ->set('checkInLocation', 'Personal Trainer')
+            ->call('manualCheckIn');
+
+        $this->assertDatabaseHas('attendances', [
+            'member_id' => $member->id,
+            'personal_trainer_session_id' => $session->id,
+            'attendance_type' => 'personal_trainer_session',
+            'handled_by' => $admin->id,
+        ]);
+        $this->assertSame('completed', $session->fresh()->status);
     }
 
     public function test_location_admin_can_access_send_member_notification_page(): void

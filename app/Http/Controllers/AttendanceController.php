@@ -33,7 +33,7 @@ class AttendanceController extends Controller
     {
         $payload = Crypt::encryptString(json_encode([
             'member_id' => $request->user()->member->id,
-            'expires_at' => now()->addMinutes(10)->toISOString(),
+            'expires_at' => now()->addMinutes(60)->toISOString(),
         ], JSON_THROW_ON_ERROR));
 
         return ApiResponder::success($payload, 'QR check-in code generated');

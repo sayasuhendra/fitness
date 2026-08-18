@@ -21,6 +21,8 @@ use App\Models\ProductCategory;
 use App\Models\Trainer;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Crypt;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -304,6 +306,23 @@ class FitnessApiTest extends TestCase
             'token' => 'demo-fcm-token',
             'platform' => 'android',
         ]);
+    }
+
+    public function test_member_qr_code_expires_after_sixty_minutes(): void
+    {
+        Carbon::setTestNow(now());
+        $member = $this->actingMember(withMembership: true);
+
+        $response = $this->getJson('/api/v1/attendance/qr-code')
+            ->assertOk();
+
+        $payload = json_decode(Crypt::decryptString($response->json('data')), true, 512, JSON_THROW_ON_ERROR);
+        $expiresAt = Carbon::parse($payload['expires_at']);
+
+        $this->assertSame($member->id, $payload['member_id']);
+        $this->assertTrue($expiresAt->between(now()->addMinutes(59), now()->addMinutes(61)));
+
+        Carbon::setTestNow();
     }
 
     public function test_payment_approval_creates_member_notification(): void

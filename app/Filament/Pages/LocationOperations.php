@@ -167,6 +167,22 @@ class LocationOperations extends Page
             ->all();
     }
 
+    public function updatedCheckInType(): void
+    {
+        $this->checkInClassBookingId = null;
+        $this->checkInPersonalTrainerSessionId = null;
+        $this->checkInSessionUnits = 1;
+        $this->checkInLocation = match ($this->checkInType) {
+            'class_attendance' => 'Kelas Akhwat Gym',
+            'personal_trainer_session' => 'Personal Trainer',
+            default => 'Akhwat Gym Studio',
+        };
+
+        if ($this->checkInType !== 'gym_visit') {
+            $this->checkInMemberId = null;
+        }
+    }
+
     public function registerMember(): void
     {
         $data = $this->validate([
@@ -351,7 +367,7 @@ class LocationOperations extends Page
     public function manualCheckIn(): void
     {
         $data = $this->validate([
-            'checkInMemberId' => ['required', 'integer', 'exists:members,id'],
+            'checkInMemberId' => ['nullable', 'required_if:checkInType,gym_visit', 'integer', 'exists:members,id'],
             'checkInType' => ['required', 'string', 'in:gym_visit,class_attendance,personal_trainer_session'],
             'checkInClassBookingId' => ['nullable', 'required_if:checkInType,class_attendance', 'integer', 'exists:class_bookings,id'],
             'checkInPersonalTrainerSessionId' => ['nullable', 'required_if:checkInType,personal_trainer_session', 'integer', 'exists:personal_trainer_sessions,id'],
@@ -361,14 +377,23 @@ class LocationOperations extends Page
 
         try {
             $booking = $data['checkInType'] === 'class_attendance'
-                ? ClassBooking::query()->with('fitnessClass')->findOrFail((int) $data['checkInClassBookingId'])
+                ? ClassBooking::query()->with(['fitnessClass', 'member.user'])->findOrFail((int) $data['checkInClassBookingId'])
                 : null;
             $personalTrainerSession = $data['checkInType'] === 'personal_trainer_session'
-                ? PersonalTrainerSession::query()->findOrFail((int) $data['checkInPersonalTrainerSessionId'])
+                ? PersonalTrainerSession::query()->with('member.user')->findOrFail((int) $data['checkInPersonalTrainerSessionId'])
                 : null;
+            $member = match ($data['checkInType']) {
+                'class_attendance' => $booking?->member,
+                'personal_trainer_session' => $personalTrainerSession?->member,
+                default => Member::query()->with('user')->findOrFail((int) $data['checkInMemberId']),
+            };
+
+            if (! $member instanceof Member) {
+                throw ValidationException::withMessages(['check_in_member_id' => 'Member untuk check-in tidak ditemukan.']);
+            }
 
             $attendance = app(CheckInMemberAction::class)->execute(
-                member: Member::query()->with('user')->findOrFail((int) $data['checkInMemberId']),
+                member: $member,
                 attendanceType: $data['checkInType'],
                 booking: $booking,
                 personalTrainerSession: $personalTrainerSession,

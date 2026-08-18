@@ -16,6 +16,10 @@
             min-width: 0;
         }
 
+        .location-operations-card--wide {
+            min-width: 0;
+        }
+
         .location-operations-form-grid {
             display: grid;
             gap: 1rem;
@@ -153,6 +157,10 @@
         @media (min-width: 1280px) {
             .location-operations-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .location-operations-card--wide {
+                grid-column: 1 / -1;
             }
         }
     </style>
@@ -353,23 +361,12 @@
         </x-filament::section>
         </div>
 
-        <div class="location-operations-card">
+        <div class="location-operations-card location-operations-card--wide">
         <x-filament::section>
             <x-slot name="heading">Check-In Manual</x-slot>
-            <x-slot name="description">Pilih jenis check-in: gym, kelas, atau personal trainer.</x-slot>
+            <x-slot name="description">Pilih Gym untuk check-in member langsung. Untuk Kelas atau Personal Trainer, pilih booking/sesi yang sudah terjadwal.</x-slot>
 
             <div class="location-operations-form-grid">
-                <label class="block">
-                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Member</span>
-                    <select wire:model="checkInMemberId" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white">
-                        <option value="">Pilih member</option>
-                        @foreach ($this->memberOptions() as $id => $label)
-                            <option value="{{ $id }}">{{ $label }}</option>
-                        @endforeach
-                    </select>
-                    @error('checkInMemberId') <span class="text-sm text-danger-600">{{ $message }}</span> @enderror
-                </label>
-
                 <label class="block">
                     <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Jenis Check-In</span>
                     <select wire:model.live="checkInType" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white">
@@ -379,6 +376,19 @@
                     </select>
                     @error('checkInType') <span class="text-sm text-danger-600">{{ $message }}</span> @enderror
                 </label>
+
+                @if ($checkInType === 'gym_visit')
+                    <label class="block">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Member</span>
+                        <select wire:model="checkInMemberId" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                            <option value="">Pilih member</option>
+                            @foreach ($this->memberOptions() as $id => $label)
+                                <option value="{{ $id }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                        @error('checkInMemberId') <span class="text-sm text-danger-600">{{ $message }}</span> @enderror
+                    </label>
+                @endif
 
                 @if ($checkInType === 'class_attendance')
                     <label class="block">
