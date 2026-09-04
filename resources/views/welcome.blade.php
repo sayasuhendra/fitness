@@ -28,7 +28,7 @@
                         <a href="{{ url('/support') }}" class="transition hover:text-white">Pusat Bantuan</a>
                     </div>
 
-                    <a href="{{ url('/admin') }}" class="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-purple-950 shadow-sm transition hover:bg-fuchsia-50">
+                    <a href="{{ url('/admin') }}" class="rounded-lg bg-white px-4 py-3 text-sm font-semibold text-purple-950 shadow-sm transition hover:bg-fuchsia-50">
                         Masuk Admin
                     </a>
                 </nav>
@@ -214,8 +214,8 @@
                         </div>
 
                         <div class="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                            <div class="rounded-2xl border border-zinc-200 bg-fuchsia-50/40 p-6 shadow-sm">
-                                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-fuchsia-600 text-white shadow-md shadow-fuchsia-600/20">
+                            <div class="rounded-lg border border-zinc-200 bg-fuchsia-50/40 p-6 shadow-sm">
+                                <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-fuchsia-600 text-white shadow-md shadow-fuchsia-600/20">
                                     <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                                     </svg>
@@ -228,8 +228,8 @@
                                 </a>
                             </div>
 
-                            <div class="rounded-2xl border border-zinc-200 bg-purple-50/40 p-6 shadow-sm">
-                                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-700 text-white shadow-md shadow-purple-700/20">
+                            <div class="rounded-lg border border-zinc-200 bg-purple-50/40 p-6 shadow-sm">
+                                <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-700 text-white shadow-md shadow-purple-700/20">
                                     <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                                     </svg>
@@ -242,8 +242,8 @@
                                 </a>
                             </div>
 
-                            <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-                                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-900 text-white shadow-md">
+                            <div class="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
+                                <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-zinc-900 text-white shadow-md">
                                     <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                     </svg>
@@ -257,8 +257,8 @@
                             </div>
                         </div>
 
-                        <div class="mt-12 rounded-2xl border border-zinc-200 bg-zinc-50 p-6 sm:p-8">
-                            <h3 class="text-xl font-bold text-zinc-950">Pertanyaan Umum (FAQ)</h3>
+                        <div class="mt-12 rounded-lg border border-zinc-200 bg-zinc-50 p-6 sm:p-8">
+                            <h3 class="text-lg font-bold text-zinc-950">Pertanyaan Umum (FAQ)</h3>
                             <div class="mt-6 grid gap-6 md:grid-cols-2">
                                 <div>
                                     <p class="font-bold text-zinc-900">Apakah nomor WhatsApp wajib saat mendaftar?</p>
