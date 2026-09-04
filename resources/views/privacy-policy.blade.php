@@ -106,7 +106,7 @@
         <h2>Data yang Kami Kumpulkan</h2>
         <p>Kami dapat mengumpulkan data berikut saat member menggunakan aplikasi:</p>
         <ul>
-            <li>Nama, alamat email, dan nomor WhatsApp untuk akun member.</li>
+            <li>Nama, alamat email, dan nomor WhatsApp (opsional) untuk akun member.</li>
             <li>Riwayat paket membership, booking kelas, check-in, dan pembelian produk.</li>
             <li>Bukti pembayaran yang diunggah member untuk proses konfirmasi pembayaran.</li>
             <li>Token perangkat untuk mengirim notifikasi penting dari Akhwat Gym.</li>
@@ -141,8 +141,8 @@
 
         <h2>Kontak</h2>
         <p>
-            Untuk pertanyaan tentang kebijakan privasi ini, hubungi kami melalui email
-            <a href="mailto:suhendra@dbaik.com">suhendra@dbaik.com</a>.
+            Untuk pertanyaan tentang kebijakan privasi ini atau permohonan terkait data akun, hubungi kami melalui email
+            <a href="mailto:akhwatgymcom@gmail.com">akhwatgymcom@gmail.com</a> atau WhatsApp <a href="https://wa.me/6285794132886" target="_blank" rel="noopener noreferrer">0857 9413 2886</a>.
         </p>
     </article>
 </main>

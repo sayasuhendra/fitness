@@ -7,3 +7,4 @@ Route::get('/', function () {
 });
 
 Route::view('/privacy-policy', 'privacy-policy')->name('privacy-policy');
+Route::view('/support', 'support')->name('support');

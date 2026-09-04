@@ -16,7 +16,15 @@ class ProfileController extends Controller
 {
     public function update(UpdateProfileRequest $request): JsonResponse
     {
-        $request->user()->update($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('avatar')) {
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $data['avatar_url'] = asset('storage/'.$path);
+            unset($data['avatar']);
+        }
+
+        $request->user()->update($data);
 
         return ApiResponder::success(new AuthResource($request->user()->fresh('member.membershipPurchases')), 'Profile updated');
     }

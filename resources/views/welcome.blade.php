@@ -24,7 +24,8 @@
                     <div class="hidden items-center gap-8 text-sm font-medium text-white/85 md:flex">
                         <a href="#manfaat" class="transition hover:text-white">Manfaat</a>
                         <a href="#pengelolaan" class="transition hover:text-white">Pengelolaan</a>
-                        <a href="#owner" class="transition hover:text-white">Untuk Owner</a>
+                        <a href="#bantuan" class="transition hover:text-white">Bantuan & Kontak</a>
+                        <a href="{{ url('/support') }}" class="transition hover:text-white">Pusat Bantuan</a>
                     </div>
 
                     <a href="{{ url('/admin') }}" class="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-purple-950 shadow-sm transition hover:bg-fuchsia-50">
@@ -200,14 +201,98 @@
                         </div>
                     </div>
                 </section>
+                <section id="bantuan" class="border-t border-zinc-200 bg-white py-20">
+                    <div class="mx-auto max-w-7xl px-5 sm:px-8">
+                        <div class="max-w-3xl">
+                            <p class="text-sm font-bold uppercase tracking-[0.18em] text-fuchsia-700">Layanan Bantuan & Dukungan</p>
+                            <h2 class="mt-4 text-3xl font-bold tracking-tight text-zinc-950 sm:text-4xl">
+                                Ada pertanyaan atau butuh bantuan terkait aplikasi?
+                            </h2>
+                            <p class="mt-4 text-base leading-7 text-zinc-600">
+                                Tim kami siap membantu Anda seputar penggunaan aplikasi Akhwat Gym, paket membership, jadwal kelas, transaksi, maupun bantuan teknis lainnya.
+                            </p>
+                        </div>
+
+                        <div class="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                            <div class="rounded-2xl border border-zinc-200 bg-fuchsia-50/40 p-6 shadow-sm">
+                                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-fuchsia-600 text-white shadow-md shadow-fuchsia-600/20">
+                                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                                    </svg>
+                                </div>
+                                <h3 class="mt-4 text-lg font-bold text-zinc-950">WhatsApp / Kontak Bantuan</h3>
+                                <p class="mt-1 text-sm text-zinc-600">Respon cepat via chat WhatsApp admin kami.</p>
+                                <p class="mt-3 text-lg font-bold text-fuchsia-950">0857 9413 2886</p>
+                                <a href="https://wa.me/6285794132886?text=Halo%20Admin%20Akhwat%20Gym,%20saya%20butuh%20bantuan%20aplikasi." target="_blank" rel="noopener noreferrer" class="mt-4 inline-flex items-center justify-center rounded-lg bg-fuchsia-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-fuchsia-700">
+                                    Chat via WhatsApp &rarr;
+                                </a>
+                            </div>
+
+                            <div class="rounded-2xl border border-zinc-200 bg-purple-50/40 p-6 shadow-sm">
+                                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-700 text-white shadow-md shadow-purple-700/20">
+                                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                    </svg>
+                                </div>
+                                <h3 class="mt-4 text-lg font-bold text-zinc-950">Email Dukungan</h3>
+                                <p class="mt-1 text-sm text-zinc-600">Pertanyaan umum dan permohonan bantuan.</p>
+                                <p class="mt-3 text-lg font-bold text-purple-950">akhwatgymcom@gmail.com</p>
+                                <a href="mailto:akhwatgymcom@gmail.com?subject=Bantuan%20Aplikasi%20Akhwat%20Gym" class="mt-4 inline-flex items-center justify-center rounded-lg bg-purple-900 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-purple-800">
+                                    Kirim Email &rarr;
+                                </a>
+                            </div>
+
+                            <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+                                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-900 text-white shadow-md">
+                                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                                <h3 class="mt-4 text-lg font-bold text-zinc-950">Jam Layanan Bantuan</h3>
+                                <p class="mt-1 text-sm text-zinc-600">Senin - Ahad (Setiap Hari)</p>
+                                <p class="mt-3 text-base font-bold text-zinc-900">07.00 - 20.00 WIB</p>
+                                <a href="{{ url('/support') }}" class="mt-4 inline-flex items-center justify-center rounded-lg border border-zinc-300 bg-zinc-50 px-4 py-2.5 text-sm font-bold text-zinc-800 transition hover:bg-zinc-100">
+                                    Buka Halaman Bantuan Lengkap &rarr;
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="mt-12 rounded-2xl border border-zinc-200 bg-zinc-50 p-6 sm:p-8">
+                            <h3 class="text-xl font-bold text-zinc-950">Pertanyaan Umum (FAQ)</h3>
+                            <div class="mt-6 grid gap-6 md:grid-cols-2">
+                                <div>
+                                    <p class="font-bold text-zinc-900">Apakah nomor WhatsApp wajib saat mendaftar?</p>
+                                    <p class="mt-2 text-sm leading-6 text-zinc-600">Tidak. Pendaftaran hanya membutuhkan Nama, Email, dan Password. Nomor WhatsApp bersifat opsional.</p>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-zinc-900">Bagaimana jika ada kendala saat pembayaran?</p>
+                                    <p class="mt-2 text-sm leading-6 text-zinc-600">Hubungi WhatsApp resmi kami dengan melampirkan bukti transfer agar langsung diverifikasi oleh admin.</p>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-zinc-900">Bagaimana cara mengganti foto profil?</p>
+                                    <p class="mt-2 text-sm leading-6 text-zinc-600">Buka menu Profil Saya di aplikasi, pilih Ubah Profil, lalu ketuk ikon kamera untuk memilih foto dari perangkat Anda.</p>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-zinc-900">Bagaimana cara meminta penghapusan akun?</p>
+                                    <p class="mt-2 text-sm leading-6 text-zinc-600">Kirim email ke akhwatgymcom@gmail.com atau hubungi admin via WhatsApp untuk memproses penghapusan akun dan data Anda.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </main>
 
-            <footer class="bg-white py-8">
-                <div class="mx-auto flex max-w-7xl flex-col gap-3 px-5 text-sm text-zinc-500 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+            <footer class="border-t border-zinc-200 bg-white py-8">
+                <div class="mx-auto flex max-w-7xl flex-col gap-4 px-5 text-sm text-zinc-500 sm:flex-row sm:items-center sm:justify-between sm:px-8">
                     <p>&copy; {{ now()->year }} Akhwat Gym. Sistem pendukung operasional studio yang rapi dan aman.</p>
-                    <a href="{{ url('/admin') }}" class="font-semibold text-fuchsia-700 hover:text-fuchsia-800">Masuk Admin</a>
+                    <div class="flex flex-wrap items-center gap-6">
+                        <a href="{{ url('/support') }}" class="font-semibold text-fuchsia-700 hover:text-fuchsia-800">Pusat Bantuan</a>
+                        <a href="{{ url('/privacy-policy') }}" class="font-semibold text-fuchsia-700 hover:text-fuchsia-800">Kebijakan Privasi</a>
+                        <a href="{{ url('/admin') }}" class="font-semibold text-zinc-700 hover:text-zinc-900">Masuk Admin</a>
+                    </div>
                 </div>
             </footer>
         </div>
     </body>
 </html>
+

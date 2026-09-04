@@ -373,4 +373,49 @@ class FitnessApiTest extends TestCase
 
         return FitnessClass::factory()->create(['trainer_id' => $trainer->id, 'capacity' => 2]);
     }
+
+    public function test_member_can_register_without_phone(): void
+    {
+        $response = $this->postJson('/api/v1/auth/register', [
+            'name' => 'Fatimah',
+            'email' => 'fatimah@example.test',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.user.phone', '');
+    }
+
+    public function test_member_can_update_profile_and_upload_avatar(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+        $member = $this->actingMember();
+
+        $file = \Illuminate\Http\UploadedFile::fake()->image('avatar.jpg');
+
+        $response = $this->post('/api/v1/profile', [
+            '_method' => 'PUT',
+            'name' => 'Aisyah Updated',
+            'email' => 'aisyah.updated@example.test',
+            'avatar' => $file,
+        ]);
+
+        $response->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.name', 'Aisyah Updated');
+
+        $this->assertNotNull($response->json('data.avatar_url'));
+        \Illuminate\Support\Facades\Storage::disk('public')->assertExists('avatars/'.$file->hashName());
+    }
+
+    public function test_support_page_is_accessible(): void
+    {
+        $this->get('/support')
+            ->assertOk()
+            ->assertSee('Pusat Bantuan')
+            ->assertSee('akhwatgymcom@gmail.com')
+            ->assertSee('0857 9413 2886');
+    }
 }
