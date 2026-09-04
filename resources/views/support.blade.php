@@ -9,12 +9,14 @@
     <style>
         :root {
             color-scheme: light;
-            --ink: #261233;
-            --muted: #6f6075;
-            --brand: #b400d8;
-            --brand-dark: #6b0d82;
-            --soft: #fff4fb;
-            --line: #f0c7ea;
+            --ink: #18181b;
+            --muted: #52525b;
+            --brand: #c026d3;
+            --brand-hover: #a21caf;
+            --brand-dark: #86198f;
+            --soft: #fdf4ff;
+            --line: #fae8ff;
+            --line-neutral: #e4e4e7;
             --card-bg: rgba(255, 255, 255, .96);
             --success: #16a34a;
         }
@@ -25,7 +27,7 @@
 
         body {
             margin: 0;
-            background: linear-gradient(135deg, #fff7fc 0%, #f8efff 100%);
+            background: linear-gradient(180deg, #ffffff 0%, #fdf4ff 100%);
             color: var(--ink);
             font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             line-height: 1.65;
@@ -55,14 +57,22 @@
         }
 
         .header-nav a {
-            color: var(--brand);
+            color: var(--brand-hover);
             text-decoration: none;
             font-size: 14px;
             font-weight: 700;
+            display: inline-block;
+            padding: 11px 0;
         }
 
         .header-nav a:hover {
             text-decoration: underline;
+        }
+
+        a:focus-visible {
+            outline: 2px solid var(--brand);
+            outline-offset: 2px;
+            border-radius: 4px;
         }
 
         .eyebrow {
@@ -127,13 +137,14 @@
             font-weight: 700;
             color: var(--ink);
             margin: 0 0 12px;
-            word-break: break-all;
+            overflow-wrap: anywhere;
         }
 
         .contact-btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            min-height: 44px;
             background: var(--brand);
             color: white;
             padding: 10px 18px;
@@ -141,16 +152,16 @@
             text-decoration: none;
             font-weight: 700;
             font-size: 14px;
-            transition: opacity .15s;
+            transition: background-color .15s;
         }
 
         .contact-btn:hover {
-            opacity: .9;
+            background: var(--brand-hover);
         }
 
         .hours-box {
-            background: #faf8fc;
-            border: 1px solid #ebdfee;
+            background: #fafafa;
+            border: 1px solid var(--line-neutral);
             border-radius: 14px;
             padding: 16px 20px;
             margin-bottom: 28px;
@@ -163,11 +174,16 @@
         }
 
         .faq-item {
-            border: 1px solid #ebdfee;
+            border: 1px solid var(--line-neutral);
             border-radius: 14px;
             padding: 18px 22px;
             margin-bottom: 12px;
             background: #fff;
+            transition: border-color .15s;
+        }
+
+        .faq-item:hover {
+            border-color: #d4d4d8;
         }
 
         .faq-question {
@@ -198,9 +214,11 @@
         }
 
         .footer a {
-            color: var(--brand);
+            color: var(--brand-hover);
             text-decoration: none;
             font-weight: 600;
+            display: inline-block;
+            padding: 11px 0;
         }
 
         .footer a:hover {
@@ -297,7 +315,7 @@
             <div class="faq-question">6. Bagaimana cara menghapus akun atau meminta penghapusan data?</div>
             <p class="faq-answer">
                 Member dapat meminta penghapusan akun atau data pribadi sewaktu-waktu dengan mengirimkan permohonan melalui email ke
-                <a href="mailto:akhwatgymcom@gmail.com" style="color: var(--brand); font-weight: 700;">akhwatgymcom@gmail.com</a> atau melalui WhatsApp admin kami.
+                <a href="mailto:akhwatgymcom@gmail.com" style="color: var(--brand-hover); font-weight: 700;">akhwatgymcom@gmail.com</a> atau melalui WhatsApp admin kami.
                 Proses akan diselesaikan dalam kurun waktu 1x24 jam kerja.
             </p>
         </div>
