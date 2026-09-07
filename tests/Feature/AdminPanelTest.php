@@ -668,6 +668,61 @@ class AdminPanelTest extends TestCase
         ]);
     }
 
+    public function test_owner_and_super_admin_can_delete_and_restore_product_safely(): void
+    {
+        $superAdmin = $this->superAdmin();
+        $member = Member::factory()->create();
+        $product = Product::factory()->create(['name' => 'Whey Protein']);
+
+        $order = Order::factory()->create(['member_id' => $member->id]);
+        $orderItem = OrderItem::query()->create([
+            'order_id' => $order->id,
+            'product_id' => $product->id,
+            'quantity' => 2,
+            'unit_price' => $product->price,
+            'unit_cost' => $product->cost_price ?? 0,
+            'subtotal' => $product->price * 2,
+            'subtotal_cost' => ($product->cost_price ?? 0) * 2,
+            'profit_amount' => 0,
+        ]);
+
+        $this->actingAs($superAdmin);
+
+        $this->assertTrue($superAdmin->can('delete', $product));
+
+        // Soft delete the product
+        $product->delete();
+
+        $this->assertSoftDeleted('products', ['id' => $product->id]);
+
+        // Verify that the order item can still access the soft-deleted product
+        $refreshedItem = OrderItem::query()->find($orderItem->id);
+        $this->assertNotNull($refreshedItem->product);
+        $this->assertSame('Whey Protein', $refreshedItem->product->name);
+
+        // Verify product is not listed in active products
+        $this->assertFalse(Product::query()->where('id', $product->id)->exists());
+        $this->assertTrue(Product::withTrashed()->where('id', $product->id)->exists());
+
+        // Restore product
+        $this->assertTrue($superAdmin->can('restore', $product));
+        $product->restore();
+
+        $this->assertNotSoftDeleted('products', ['id' => $product->id]);
+        $this->assertTrue(Product::query()->where('id', $product->id)->exists());
+    }
+
+    public function test_location_admin_cannot_delete_product(): void
+    {
+        $locationAdmin = $this->adminWithSeededRole('Admin di lokasi');
+        $product = Product::factory()->create();
+
+        $this->actingAs($locationAdmin);
+
+        $this->assertFalse($locationAdmin->can('delete', $product));
+        $this->assertFalse($locationAdmin->can('deleteAny', Product::class));
+    }
+
     private function superAdmin(): User
     {
         $admin = User::factory()->create();

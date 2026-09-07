@@ -34,32 +34,32 @@ class ProductPolicy
 
     public function delete(AuthUser $authUser, Product $product): bool
     {
-        return $authUser->can('Delete:Product');
+        return method_exists($authUser, 'hasAnyRole') && $authUser->hasAnyRole(['Owner', 'Super admin']);
     }
 
     public function deleteAny(AuthUser $authUser): bool
     {
-        return $authUser->can('DeleteAny:Product');
+        return method_exists($authUser, 'hasAnyRole') && $authUser->hasAnyRole(['Owner', 'Super admin']);
     }
 
     public function restore(AuthUser $authUser, Product $product): bool
     {
-        return $authUser->can('Restore:Product');
+        return method_exists($authUser, 'hasAnyRole') && $authUser->hasAnyRole(['Owner', 'Super admin']);
     }
 
     public function forceDelete(AuthUser $authUser, Product $product): bool
     {
-        return $authUser->can('ForceDelete:Product');
+        return method_exists($authUser, 'hasAnyRole') && $authUser->hasAnyRole(['Owner', 'Super admin']);
     }
 
     public function forceDeleteAny(AuthUser $authUser): bool
     {
-        return $authUser->can('ForceDeleteAny:Product');
+        return method_exists($authUser, 'hasAnyRole') && $authUser->hasAnyRole(['Owner', 'Super admin']);
     }
 
     public function restoreAny(AuthUser $authUser): bool
     {
-        return $authUser->can('RestoreAny:Product');
+        return method_exists($authUser, 'hasAnyRole') && $authUser->hasAnyRole(['Owner', 'Super admin']);
     }
 
     public function replicate(AuthUser $authUser, Product $product): bool

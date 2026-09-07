@@ -4,8 +4,11 @@ namespace App\Filament\Resources\Products\Tables;
 
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\RestoreAction;
+use Filament\Actions\RestoreBulkAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\IconColumn;
@@ -13,6 +16,7 @@ use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
 class ProductsTable
@@ -72,6 +76,9 @@ class ProductsTable
                     ->preload(),
                 TernaryFilter::make('is_active')
                     ->label('Tampil di toko'),
+                TrashedFilter::make()
+                    ->label('Status Dihapus')
+                    ->visible(fn (): bool => auth()->user()?->hasAnyRole(['Owner', 'Super admin']) ?? false),
             ])
             ->recordActions([
                 Action::make('add_stock')
@@ -126,10 +133,25 @@ class ProductsTable
                     }),
                 EditAction::make()
                     ->label('Edit'),
+                DeleteAction::make()
+                    ->label('Hapus')
+                    ->visible(fn (): bool => auth()->user()?->hasAnyRole(['Owner', 'Super admin']) ?? false)
+                    ->modalHeading('Hapus Produk')
+                    ->modalDescription('Apakah Anda yakin ingin menghapus produk ini? Produk yang dihapus tidak akan ditampilkan lagi di toko, namun riwayat transaksi pesanan lama tetap aman tersimpan.')
+                    ->modalSubmitActionLabel('Ya, Hapus Produk'),
+                RestoreAction::make()
+                    ->label('Pulihkan')
+                    ->visible(fn (): bool => auth()->user()?->hasAnyRole(['Owner', 'Super admin']) ?? false),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->visible(fn (): bool => auth()->user()?->hasAnyRole(['Owner', 'Super admin']) ?? false)
+                        ->modalHeading('Hapus Produk Terpilih')
+                        ->modalDescription('Produk terpilih akan dihapus dari toko. Riwayat transaksi pesanan lama tetap aman tersimpan.')
+                        ->modalSubmitActionLabel('Ya, Hapus Terpilih'),
+                    RestoreBulkAction::make()
+                        ->visible(fn (): bool => auth()->user()?->hasAnyRole(['Owner', 'Super admin']) ?? false),
                 ]),
             ])
             ->poll('15s');
