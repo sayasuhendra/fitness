@@ -44,7 +44,7 @@ class PersonalTrainerSession extends Model
 
     public function trainer(): BelongsTo
     {
-        return $this->belongsTo(Trainer::class);
+        return $this->belongsTo(Trainer::class)->withTrashed();
     }
 
     public function personalTrainer(): BelongsTo

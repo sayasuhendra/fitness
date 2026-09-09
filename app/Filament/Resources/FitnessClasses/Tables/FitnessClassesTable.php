@@ -3,12 +3,16 @@
 namespace App\Filament\Resources\FitnessClasses\Tables;
 
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\RestoreAction;
+use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
 class FitnessClassesTable
@@ -95,13 +99,23 @@ class FitnessClassesTable
                     ->label('Repeats weekly'),
                 TernaryFilter::make('allow_drop_in')
                     ->label('Allows one-time visitor'),
+                TrashedFilter::make()
+                    ->label('Status Dihapus'),
             ])
             ->recordActions([
                 EditAction::make(),
+                DeleteAction::make()
+                    ->label('Hapus')
+                    ->modalHeading('Hapus Jadwal Kelas')
+                    ->modalDescription('Apakah Anda yakin ingin menghapus jadwal kelas ini? Sesi kelas terkait akan dinonaktifkan (soft delete), namun riwayat booking dan absensi member tetap tersimpan dengan aman.')
+                    ->modalSubmitActionLabel('Ya, Hapus'),
+                RestoreAction::make()
+                    ->label('Pulihkan'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                 ]),
             ]);
     }

@@ -48,12 +48,12 @@ class ClassBooking extends Model
 
     public function fitnessClass(): BelongsTo
     {
-        return $this->belongsTo(FitnessClass::class);
+        return $this->belongsTo(FitnessClass::class)->withTrashed();
     }
 
     public function classSession(): BelongsTo
     {
-        return $this->belongsTo(ClassSession::class);
+        return $this->belongsTo(ClassSession::class)->withTrashed();
     }
 
     public function paymentConfirmations(): MorphMany

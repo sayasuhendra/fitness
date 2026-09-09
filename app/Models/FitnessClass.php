@@ -9,12 +9,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
 class FitnessClass extends Model
 {
     /** @use HasFactory<FitnessClassFactory> */
     use HasFactory;
+    use SoftDeletes;
 
     protected $fillable = [
         'trainer_id',
@@ -49,9 +51,22 @@ class FitnessClass extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::deleting(function (FitnessClass $class): void {
+            if (! $class->isForceDeleting()) {
+                $class->sessions()->each(fn (ClassSession $session) => $session->delete());
+            }
+        });
+
+        static::restoring(function (FitnessClass $class): void {
+            $class->sessions()->onlyTrashed()->each(fn (ClassSession $session) => $session->restore());
+        });
+    }
+
     public function trainer(): BelongsTo
     {
-        return $this->belongsTo(Trainer::class);
+        return $this->belongsTo(Trainer::class)->withTrashed();
     }
 
     public function bookings(): HasMany

@@ -15,6 +15,7 @@ use App\Filament\Widgets\RevenueTrendChart;
 use App\Filament\Widgets\ShiftRevenueBreakdownChart;
 use App\Models\Attendance;
 use App\Models\ClassBooking;
+use App\Models\ClassSession;
 use App\Models\FitnessClass;
 use App\Models\Member;
 use App\Models\MembershipPackage;
@@ -721,6 +722,129 @@ class AdminPanelTest extends TestCase
 
         $this->assertFalse($locationAdmin->can('delete', $product));
         $this->assertFalse($locationAdmin->can('deleteAny', Product::class));
+    }
+
+    public function test_super_admin_and_owner_can_soft_delete_and_restore_trainer_with_cascade(): void
+    {
+        $superAdmin = $this->superAdmin();
+        $member = Member::factory()->create();
+
+        $trainerUser = User::factory()->create(['name' => 'Pelatih Yoga']);
+        $trainer = Trainer::factory()->create(['user_id' => $trainerUser->id]);
+
+        $fitnessClass = FitnessClass::factory()->create(['trainer_id' => $trainer->id]);
+        $session = ClassSession::query()->create([
+            'fitness_class_id' => $fitnessClass->id,
+            'trainer_id' => $trainer->id,
+            'session_date' => now()->toDateString(),
+            'start_time' => '08:00:00',
+            'end_time' => '09:00:00',
+            'capacity' => 15,
+            'status' => 'scheduled',
+        ]);
+
+        $booking = ClassBooking::factory()->create([
+            'member_id' => $member->id,
+            'fitness_class_id' => $fitnessClass->id,
+            'class_session_id' => $session->id,
+        ]);
+
+        $attendance = Attendance::query()->create([
+            'member_id' => $member->id,
+            'fitness_class_id' => $fitnessClass->id,
+            'class_session_id' => $session->id,
+            'class_booking_id' => $booking->id,
+            'check_in_time' => now(),
+            'status' => 'present',
+            'attendance_type' => 'class_attendance',
+        ]);
+
+        $this->actingAs($superAdmin);
+
+        $this->assertTrue($superAdmin->can('delete', $trainer));
+
+        // Soft delete trainer
+        $trainer->delete();
+
+        // Verify trainer, fitness class, and class session are all soft deleted
+        $this->assertSoftDeleted('trainers', ['id' => $trainer->id]);
+        $this->assertSoftDeleted('fitness_classes', ['id' => $fitnessClass->id]);
+        $this->assertSoftDeleted('class_sessions', ['id' => $session->id]);
+
+        // Verify booking and attendance relationships can still access soft-deleted class & session
+        $this->assertNotNull($booking->fresh()->fitnessClass);
+        $this->assertSame($fitnessClass->id, $booking->fresh()->fitnessClass->id);
+        $this->assertNotNull($booking->fresh()->classSession);
+        $this->assertSame($session->id, $booking->fresh()->classSession->id);
+
+        $this->assertNotNull($attendance->fresh()->fitnessClass);
+        $this->assertSame($fitnessClass->id, $attendance->fresh()->fitnessClass->id);
+        $this->assertNotNull($attendance->fresh()->classSession);
+        $this->assertSame($session->id, $attendance->fresh()->classSession->id);
+
+        // Restore trainer
+        $this->assertTrue($superAdmin->can('restore', $trainer));
+        $trainer->restore();
+
+        // Verify trainer, fitness class, and session are all restored
+        $this->assertNotSoftDeleted('trainers', ['id' => $trainer->id]);
+        $this->assertNotSoftDeleted('fitness_classes', ['id' => $fitnessClass->id]);
+        $this->assertNotSoftDeleted('class_sessions', ['id' => $session->id]);
+    }
+
+    public function test_location_admin_cannot_delete_trainer(): void
+    {
+        $locationAdmin = $this->adminWithSeededRole('Admin di lokasi');
+        $trainer = Trainer::factory()->create();
+
+        $this->actingAs($locationAdmin);
+
+        $this->assertFalse($locationAdmin->can('delete', $trainer));
+        $this->assertFalse($locationAdmin->can('deleteAny', Trainer::class));
+    }
+
+    public function test_instructors_delete_permanent_command_cleans_records_safely(): void
+    {
+        $user = User::factory()->create(['name' => 'Sohendra Test', 'email' => 'sohendra.test@example.com']);
+        $trainer = Trainer::factory()->create(['user_id' => $user->id]);
+        $fitnessClass = FitnessClass::factory()->create(['trainer_id' => $trainer->id]);
+        $session = ClassSession::query()->create([
+            'fitness_class_id' => $fitnessClass->id,
+            'trainer_id' => $trainer->id,
+            'session_date' => now()->toDateString(),
+            'start_time' => '10:00:00',
+            'end_time' => '11:00:00',
+            'capacity' => 10,
+            'status' => 'scheduled',
+        ]);
+
+        $member = Member::factory()->create();
+        $booking = ClassBooking::factory()->create([
+            'member_id' => $member->id,
+            'fitness_class_id' => $fitnessClass->id,
+            'class_session_id' => $session->id,
+        ]);
+        $attendance = Attendance::query()->create([
+            'member_id' => $member->id,
+            'fitness_class_id' => $fitnessClass->id,
+            'class_session_id' => $session->id,
+            'class_booking_id' => $booking->id,
+            'check_in_time' => now(),
+            'status' => 'present',
+            'attendance_type' => 'class_attendance',
+        ]);
+
+        // Run command with --force
+        $this->artisan('instructors:delete-permanent', ['--force' => true])
+            ->assertSuccessful();
+
+        // Verify permanent removal
+        $this->assertDatabaseMissing('users', ['id' => $user->id]);
+        $this->assertDatabaseMissing('trainers', ['id' => $trainer->id]);
+        $this->assertDatabaseMissing('fitness_classes', ['id' => $fitnessClass->id]);
+        $this->assertDatabaseMissing('class_sessions', ['id' => $session->id]);
+        $this->assertDatabaseMissing('class_bookings', ['id' => $booking->id]);
+        $this->assertDatabaseMissing('attendances', ['id' => $attendance->id]);
     }
 
     private function superAdmin(): User

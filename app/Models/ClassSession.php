@@ -7,9 +7,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ClassSession extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'fitness_class_id',
         'trainer_id',
@@ -29,12 +32,12 @@ class ClassSession extends Model
 
     public function fitnessClass(): BelongsTo
     {
-        return $this->belongsTo(FitnessClass::class);
+        return $this->belongsTo(FitnessClass::class)->withTrashed();
     }
 
     public function trainer(): BelongsTo
     {
-        return $this->belongsTo(Trainer::class);
+        return $this->belongsTo(Trainer::class)->withTrashed();
     }
 
     public function bookings(): HasMany
