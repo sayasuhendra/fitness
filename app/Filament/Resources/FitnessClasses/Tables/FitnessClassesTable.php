@@ -82,6 +82,7 @@ class FitnessClassesTable
                         'yoga' => 'Yoga',
                         'prenatal_yoga' => 'Yoga Prenatal',
                         'circuit_training' => 'Circuit Training',
+                        'salsation' => 'Salsation',
                         'pilates' => 'Pilates',
                         'strength' => 'Strength',
                         'aerobic' => 'Aerobic',

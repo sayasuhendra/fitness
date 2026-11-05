@@ -42,7 +42,20 @@ class FitnessApiTest extends TestCase
 
         $response->assertCreated()
             ->assertJsonPath('success', true)
-            ->assertJsonStructure(['data' => ['user' => ['id', 'name', 'email', 'phone'], 'access_token', 'refresh_token']]);
+            ->assertJsonPath('data.user.member_code', 'MBR'.str_pad((string) $response->json('data.user.id'), 6, '0', STR_PAD_LEFT))
+            ->assertJsonStructure(['data' => ['user' => ['id', 'name', 'email', 'phone', 'member_code'], 'access_token', 'refresh_token']]);
+    }
+
+    public function test_authenticated_user_me_endpoint_returns_member_code(): void
+    {
+        $member = $this->actingMember();
+        $member->update(['member_code' => 'CUSTOM123']);
+
+        $response = $this->getJson('/api/v1/auth/me');
+
+        $response->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.member_code', 'CUSTOM123');
     }
 
     public function test_member_can_purchase_membership_and_book_class(): void
@@ -417,5 +430,103 @@ class FitnessApiTest extends TestCase
             ->assertSee('Pusat Bantuan')
             ->assertSee('akhwatgymcom@gmail.com')
             ->assertSee('0857 9413 2886');
+    }
+
+    public function test_user_without_preexisting_member_can_book_drop_in_class(): void
+    {
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        $trainerUser = User::factory()->create(['name' => 'Coach Salsation']);
+        $trainer = Trainer::factory()->create(['user_id' => $trainerUser->id]);
+        $fitnessClass = FitnessClass::factory()->create([
+            'trainer_id' => $trainer->id,
+            'name' => 'Salsation Morning',
+            'class_type' => 'salsation',
+            'allow_drop_in' => true,
+            'drop_in_price' => 35000,
+            'capacity' => 20,
+            'class_date' => now()->toDateString(),
+            'start_time' => '08:00:00',
+            'end_time' => '09:00:00',
+        ]);
+
+        $response = $this->postJson('/api/v1/classes/book', [
+            'class_id' => $fitnessClass->id,
+            'booked_for_date' => now()->toDateString(),
+            'access_type' => 'one_time',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.fitness_class.class_type', 'salsation')
+            ->assertJsonPath('data.amount', 35000);
+
+        $this->assertDatabaseHas('members', ['user_id' => $user->id]);
+    }
+
+    public function test_rebooking_same_class_and_date_updates_instead_of_duplicate_collision(): void
+    {
+        $member = $this->actingMember();
+        $trainerUser = User::factory()->create(['name' => 'Teh Bomiya']);
+        $trainer = Trainer::factory()->create(['user_id' => $trainerUser->id]);
+        $fitnessClass = FitnessClass::factory()->create([
+            'trainer_id' => $trainer->id,
+            'name' => 'Bomiya Class',
+            'class_type' => 'bomiya',
+            'allow_drop_in' => true,
+            'drop_in_price' => 37500,
+            'capacity' => 20,
+            'class_date' => now()->toDateString(),
+            'start_time' => '08:00:00',
+            'end_time' => '09:00:00',
+        ]);
+
+        // First booking
+        $first = $this->postJson('/api/v1/classes/book', [
+            'class_id' => $fitnessClass->id,
+            'booked_for_date' => now()->toDateString(),
+            'access_type' => 'one_time',
+        ]);
+        $first->assertCreated();
+
+        // Second booking call (e.g. retry / resume payment)
+        $second = $this->postJson('/api/v1/classes/book', [
+            'class_id' => $fitnessClass->id,
+            'booked_for_date' => now()->toDateString(),
+            'access_type' => 'one_time',
+        ]);
+        $second->assertCreated()
+            ->assertJsonPath('data.id', $first->json('data.id'));
+    }
+
+    public function test_class_session_generator_updates_existing_session_when_class_details_change(): void
+    {
+        $trainer = Trainer::factory()->create();
+        $class = FitnessClass::factory()->create([
+            'trainer_id' => $trainer->id,
+            'class_date' => now()->toDateString(),
+            'start_time' => '08:00:00',
+            'end_time' => '09:00:00',
+            'capacity' => 10,
+            'is_active' => true,
+        ]);
+
+        $generator = app(\App\Services\Classes\ClassSessionGenerator::class);
+        $sessions = $generator->forDate(now()->toDateString());
+        $this->assertEquals('08:00:00', $sessions->first()->start_time);
+        $this->assertEquals(10, $sessions->first()->capacity);
+
+        // Admin edits class capacity and start_time
+        $class->update([
+            'start_time' => '09:30:00',
+            'end_time' => '10:30:00',
+            'capacity' => 25,
+        ]);
+
+        $updatedSessions = $generator->forDate(now()->toDateString());
+        $this->assertCount(1, $updatedSessions);
+        $this->assertEquals('09:30:00', $updatedSessions->first()->start_time);
+        $this->assertEquals(25, $updatedSessions->first()->capacity);
     }
 }

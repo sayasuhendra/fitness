@@ -16,8 +16,8 @@ class FitnessClassResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'class_type' => $this->class_type,
-            'trainer_name' => $this->trainer->user->name,
-            'trainer_avatar_url' => $this->trainer->user->avatar_url,
+            'trainer_name' => $this->trainer?->user?->name ?? 'Instruktur',
+            'trainer_avatar_url' => $this->trainer?->user?->avatar_url,
             'capacity' => $this->capacity,
             'booked_count' => $this->confirmed_bookings_count_for_date
                 ?? $this->confirmed_bookings_count

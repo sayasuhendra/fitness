@@ -14,25 +14,25 @@ class ClassSessionResource extends JsonResource
         $class = $this->fitnessClass;
 
         return [
-            'id' => $class->id,
+            'id' => $class?->id ?? 0,
             'session_id' => $this->id,
-            'name' => $class->name,
-            'description' => $class->description,
-            'class_type' => $class->class_type,
-            'trainer_name' => $this->trainer?->user?->name ?? $class->trainer->user->name,
-            'trainer_avatar_url' => $this->trainer?->user?->avatar_url ?? $class->trainer->user->avatar_url,
+            'name' => $class?->name ?? 'Kelas',
+            'description' => $class?->description ?? '',
+            'class_type' => $class?->class_type ?? 'general',
+            'trainer_name' => $this->trainer?->user?->name ?? $class?->trainer?->user?->name ?? 'Instruktur',
+            'trainer_avatar_url' => $this->trainer?->user?->avatar_url ?? $class?->trainer?->user?->avatar_url,
             'capacity' => $this->capacity,
             'booked_count' => $this->confirmed_bookings_count ?? $this->confirmedBookingsCount(),
-            'location' => $class->location,
+            'location' => $class?->location ?? 'Akhwat Gym Studio',
             'start_time' => (string) $this->start_time,
             'end_time' => (string) $this->end_time,
             'date' => $this->session_date->toDateString(),
-            'is_recurring' => $class->is_recurring,
-            'recurring_days' => $class->recurring_days ?? [],
-            'recurrence_ends_at' => $class->recurrence_ends_at?->toDateString(),
-            'allow_drop_in' => $class->allow_drop_in,
-            'drop_in_price' => (float) $class->drop_in_price,
-            'trainer_addon_price' => (float) $class->trainer_addon_price,
+            'is_recurring' => $class?->is_recurring ?? false,
+            'recurring_days' => $class?->recurring_days ?? [],
+            'recurrence_ends_at' => $class?->recurrence_ends_at?->toDateString(),
+            'allow_drop_in' => $class?->allow_drop_in ?? false,
+            'drop_in_price' => (float) ($class?->drop_in_price ?? 0),
+            'trainer_addon_price' => (float) ($class?->trainer_addon_price ?? 0),
         ];
     }
 }

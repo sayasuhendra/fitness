@@ -9,6 +9,7 @@ use App\Filament\Pages\ScanMemberQr;
 use App\Filament\Pages\SendMemberNotification;
 use App\Filament\Pages\ShiftRevenueReport;
 use App\Filament\Resources\Members\Pages\CreateMember;
+use App\Filament\Resources\Members\Pages\EditMember;
 use App\Filament\Resources\Trainers\Pages\CreateTrainer;
 use App\Filament\Widgets\BookingAttendanceChart;
 use App\Filament\Widgets\RevenueTrendChart;
@@ -129,6 +130,95 @@ class AdminPanelTest extends TestCase
             'member_code' => 'MBR000001',
         ]);
         $this->assertSame(1, Member::query()->where('user_id', $user->id)->count());
+    }
+
+    public function test_admin_can_edit_member_code(): void
+    {
+        $admin = $this->adminWithSeededRole('Super admin');
+        $member = Member::factory()->create([
+            'member_code' => 'MBR000001',
+        ]);
+
+        $this->actingAs($admin);
+
+        Livewire::test(EditMember::class, [
+            'record' => $member->getRouteKey(),
+        ])
+            ->assertFormFieldExists('member_code')
+            ->fillForm([
+                'member_code' => 'MBR999999',
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertDatabaseHas('members', [
+            'id' => $member->id,
+            'member_code' => 'MBR999999',
+        ]);
+    }
+
+    public function test_admin_can_edit_trainer_name_and_phone(): void
+    {
+        $admin = $this->adminWithSeededRole('Super admin');
+        $trainerUser = User::factory()->create([
+            'name' => 'Nama Lama',
+            'phone' => '62811111111',
+        ]);
+        $trainer = Trainer::factory()->create([
+            'user_id' => $trainerUser->id,
+        ]);
+
+        $this->actingAs($admin);
+
+        Livewire::test(\App\Filament\Resources\Trainers\Pages\EditTrainer::class, [
+            'record' => $trainer->getRouteKey(),
+        ])
+            ->assertFormFieldExists('user_name')
+            ->assertFormFieldExists('user_phone')
+            ->fillForm([
+                'user_name' => 'Nama Baru Instruktur',
+                'user_phone' => '62899999999',
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertDatabaseHas('users', [
+            'id' => $trainerUser->id,
+            'name' => 'Nama Baru Instruktur',
+            'phone' => '62899999999',
+        ]);
+    }
+
+    public function test_admin_can_edit_member_name_and_phone(): void
+    {
+        $admin = $this->adminWithSeededRole('Super admin');
+        $memberUser = User::factory()->create([
+            'name' => 'Aisyah Lama',
+            'phone' => '62812222222',
+        ]);
+        $member = Member::factory()->create([
+            'user_id' => $memberUser->id,
+        ]);
+
+        $this->actingAs($admin);
+
+        Livewire::test(EditMember::class, [
+            'record' => $member->getRouteKey(),
+        ])
+            ->assertFormFieldExists('user_name')
+            ->assertFormFieldExists('user_phone')
+            ->fillForm([
+                'user_name' => 'Aisyah Nama Baru',
+                'user_phone' => '62898888888',
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertDatabaseHas('users', [
+            'id' => $memberUser->id,
+            'name' => 'Aisyah Nama Baru',
+            'phone' => '62898888888',
+        ]);
     }
 
     public function test_users_admin_page_renders(): void

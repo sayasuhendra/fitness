@@ -33,7 +33,7 @@ class CreateMember extends CreateRecord
 
             Role::findOrCreate('Member', 'web');
             $user->assignRole('Member');
-            $data['member_code'] = $this->nextMemberCode();
+            $data['member_code'] = !empty($data['member_code']) ? $data['member_code'] : $this->nextMemberCode();
 
             unset(
                 $data['user_mode'],

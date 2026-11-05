@@ -71,7 +71,8 @@ final class BookClassAction
 
             $existing = ClassBooking::query()
                 ->where('member_id', $member->id)
-                ->where('class_session_id', $session->id)
+                ->where('fitness_class_id', $class->id)
+                ->whereDate('booked_for_date', $bookingDate)
                 ->first();
 
             if ($existing !== null) {
@@ -111,7 +112,11 @@ final class BookClassAction
             return $booking;
         });
 
-        $this->notifyMember($booking);
+        try {
+            $this->notifyMember($booking);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Failed to notify member of booking: '.$e->getMessage());
+        }
 
         return $booking;
     }

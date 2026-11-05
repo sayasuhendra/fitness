@@ -26,12 +26,11 @@ class PaymentConfirmationForm
                             ])
                             ->required(),
                         TextInput::make('payment_method')
-                            ->label('Metode')
-                            ->disabled(),
+                            ->label('Metode'),
                         TextInput::make('amount')
                             ->label('Nominal')
                             ->prefix('Rp')
-                            ->disabled(),
+                            ->numeric(),
                         FileUpload::make('proof_path')
                             ->label('Bukti Pembayaran')
                             ->disk('public')
@@ -42,7 +41,6 @@ class PaymentConfirmationForm
                         Textarea::make('member_note')
                             ->label('Catatan Member')
                             ->rows(3)
-                            ->disabled()
                             ->columnSpanFull(),
                         Textarea::make('admin_note')
                             ->label('Catatan Admin')

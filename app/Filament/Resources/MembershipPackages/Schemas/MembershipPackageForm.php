@@ -71,6 +71,8 @@ class MembershipPackageForm
                                 'aeromix' => 'Aeromix',
                                 'fitdance' => 'Fitdance',
                                 'bomiya' => 'Bomiya',
+                                'circuit_training' => 'Circuit Training',
+                                'salsation' => 'Salsation',
                                 'yoga' => 'Yoga',
                                 'prenatal_yoga' => 'Yoga Prenatal',
                                 'poundfit' => 'Poundfit',

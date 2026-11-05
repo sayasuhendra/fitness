@@ -58,7 +58,6 @@ class MembershipPurchaseForm
                             ->numeric()
                             ->prefix('Rp')
                             ->default(0)
-                            ->disabled()
                             ->dehydrated()
                             ->required(),
                         TextInput::make('payment_reference')
@@ -76,14 +75,12 @@ class MembershipPurchaseForm
                     ->schema([
                         Toggle::make('includes_personal_trainer')
                             ->label('Termasuk Personal Trainer')
-                            ->disabled()
                             ->dehydrated(),
                         TextInput::make('visits_allowed')
                             ->label('Maksimal Kunjungan')
                             ->numeric()
-                            ->disabled()
                             ->dehydrated()
-                            ->helperText('Leave empty for unlimited visits.'),
+                            ->helperText('Kosongkan untuk kunjungan tanpa batas (unlimited).'),
                         TextInput::make('visits_used')
                             ->label('Kunjungan Terpakai')
                             ->numeric()

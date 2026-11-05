@@ -25,7 +25,7 @@ class OrderForm
                             ->required(),
                         Select::make('status')
                             ->label('Status')
-                            ->helperText('Ubah status operasional melalui tombol Selesai atau Batalkan agar stok tetap aman.')
+                            ->helperText('Ubah status pesanan sesuai transaksi.')
                             ->options([
                                 'pending_payment' => 'Menunggu Pembayaran',
                                 'paid' => 'Sudah Dibayar',
@@ -33,8 +33,6 @@ class OrderForm
                                 'cancelled' => 'Dibatalkan',
                             ])
                             ->default('pending_payment')
-                            ->disabled()
-                            ->dehydrated(false)
                             ->required(),
                         Select::make('payment_method')
                             ->label('Metode Pembayaran')
@@ -49,8 +47,6 @@ class OrderForm
                             ->numeric()
                             ->default(0)
                             ->prefix('Rp')
-                            ->disabled()
-                            ->dehydrated(false)
                             ->required(),
                         TextInput::make('payment_reference')
                             ->label('Kode Pembayaran')

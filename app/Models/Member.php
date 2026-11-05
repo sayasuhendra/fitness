@@ -60,4 +60,11 @@ class Member extends Model
             ->latest('expires_at')
             ->first();
     }
+
+    public static function nextMemberCode(): string
+    {
+        $lastId = (int) static::query()->max('id');
+
+        return 'MBR'.str_pad((string) ($lastId + 1), 6, '0', STR_PAD_LEFT);
+    }
 }

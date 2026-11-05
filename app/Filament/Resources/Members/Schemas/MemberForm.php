@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Members\Schemas;
 
+use App\Models\Member;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
@@ -46,6 +47,18 @@ class MemberForm
                             ->preload()
                             ->required(fn (Get $get, string $operation): bool => $operation === 'edit' || $get('user_mode') === 'existing')
                             ->visible(fn (Get $get, string $operation): bool => $operation === 'edit' || $get('user_mode') === 'existing'),
+                        TextInput::make('user_name')
+                            ->label('Nama Member')
+                            ->afterStateHydrated(fn ($component, $record) => $component->state($record?->user?->name))
+                            ->required()
+                            ->maxLength(255)
+                            ->visibleOn('edit'),
+                        TextInput::make('user_phone')
+                            ->label('Nomor HP Member')
+                            ->tel()
+                            ->afterStateHydrated(fn ($component, $record) => $component->state($record?->user?->phone))
+                            ->maxLength(32)
+                            ->visibleOn('edit'),
                         TextInput::make('new_user_name')
                             ->label('Nama Akun Baru')
                             ->maxLength(255)
@@ -79,6 +92,13 @@ class MemberForm
                 Section::make('Profil Member')
                     ->description('Data ini dipakai untuk identitas member dan riwayat aktivitas.')
                     ->schema([
+                        TextInput::make('member_code')
+                            ->label('Kode Member')
+                            ->required()
+                            ->maxLength(50)
+                            ->unique(table: 'members', column: 'member_code', ignoreRecord: true)
+                            ->helperText('Kode unik member (misal: MBR000001).')
+                            ->visibleOn('edit'),
                         DatePicker::make('joined_at')
                             ->label('Tanggal Bergabung')
                             ->default(now())

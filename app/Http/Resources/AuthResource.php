@@ -20,6 +20,7 @@ class AuthResource extends JsonResource
             'email' => $this->email,
             'phone' => $this->phone ?? '',
             'avatar_url' => $this->avatar_url,
+            'member_code' => $member?->member_code,
             'membership_status' => $membership?->status ?? 'inactive',
             'membership_expiry' => $membership?->expires_at?->toDateString(),
             'membership_includes_personal_trainer' => $membership?->includes_personal_trainer ?? false,

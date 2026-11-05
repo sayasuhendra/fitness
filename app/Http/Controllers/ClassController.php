@@ -12,6 +12,8 @@ use App\Http\Resources\ClassBookingResource;
 use App\Http\Resources\ClassSessionResource;
 use App\Http\Resources\FitnessClassResource;
 use App\Models\FitnessClass;
+use App\Models\Member;
+use App\Models\User;
 use App\Services\ApiResponder;
 use App\Services\Classes\ClassSessionGenerator;
 use Illuminate\Http\JsonResponse;
@@ -19,6 +21,18 @@ use Illuminate\Http\Request;
 
 class ClassController extends Controller
 {
+    private function resolveMember(User $user): Member
+    {
+        return $user->member ?? Member::firstOrCreate(
+            ['user_id' => $user->id],
+            [
+                'member_code' => Member::nextMemberCode(),
+                'status' => 'inactive',
+                'joined_at' => now(),
+            ]
+        );
+    }
+
     public function index(Request $request, ClassSessionGenerator $sessionGenerator): JsonResponse
     {
         $date = $request->query('date');
@@ -43,8 +57,10 @@ class ClassController extends Controller
 
     public function book(BookClassRequest $request, BookClassAction $action): JsonResponse
     {
+        $member = $this->resolveMember($request->user());
+
         $booking = $action->execute(
-            member: $request->user()->member,
+            member: $member,
             classId: (int) $request->validated('class_id'),
             classSessionId: $request->validated('class_session_id') !== null ? (int) $request->validated('class_session_id') : null,
             bookedForDate: $request->validated('booked_for_date') ?? null,
@@ -58,14 +74,16 @@ class ClassController extends Controller
 
     public function cancel(CancelBookingRequest $request, CancelBookingAction $action): JsonResponse
     {
-        $booking = $action->execute($request->user()->member, (int) $request->validated('booking_id'));
+        $member = $this->resolveMember($request->user());
+        $booking = $action->execute($member, (int) $request->validated('booking_id'));
 
         return ApiResponder::success(new ClassBookingResource($booking->load('fitnessClass.trainer.user')), 'Booking cancelled');
     }
 
     public function myBookings(Request $request): JsonResponse
     {
-        $bookings = $request->user()->member->bookings()
+        $member = $this->resolveMember($request->user());
+        $bookings = $member->bookings()
             ->with(['fitnessClass.trainer.user', 'paymentConfirmations'])
             ->latest('booked_at')
             ->get();

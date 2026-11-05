@@ -44,7 +44,14 @@ class PaymentController extends Controller
 
     public function confirm(StorePaymentConfirmationRequest $request): JsonResponse
     {
-        $member = $request->user()->member;
+        $member = $request->user()->member ?? \App\Models\Member::firstOrCreate(
+            ['user_id' => $request->user()->id],
+            [
+                'member_code' => \App\Models\Member::nextMemberCode(),
+                'status' => 'inactive',
+                'joined_at' => now(),
+            ]
+        );
         $payable = $this->resolvePayable(
             type: $request->validated('payable_type'),
             id: (int) $request->validated('payable_id'),
