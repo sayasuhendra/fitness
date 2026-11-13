@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\AuthResource;
+use App\Models\Member;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,7 +22,7 @@ class AuthController extends Controller
     {
         $user = User::create($request->validated());
         $user->member()->create([
-            'member_code' => 'MBR'.str_pad((string) $user->id, 6, '0', STR_PAD_LEFT),
+            'member_code' => Member::nextMemberCode(),
             'joined_at' => now()->toDateString(),
         ]);
         if (method_exists($user, 'assignRole')) {
@@ -33,7 +34,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Registration successful',
+            'message' => 'Pendaftaran akun berhasil.',
             'data' => [
                 'user' => new AuthResource($user->load('member')),
                 'access_token' => $token,
@@ -49,7 +50,7 @@ class AuthController extends Controller
         if (! $user || ! Hash::check($request->password, $user->password)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid credentials',
+                'message' => 'Email atau kata sandi yang Anda masukkan salah.',
             ], 401);
         }
 
@@ -57,7 +58,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Login successful',
+            'message' => 'Login berhasil.',
             'data' => [
                 'user' => new AuthResource($user),
                 'access_token' => $token,
@@ -72,7 +73,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Logout successful',
+            'message' => 'Logout berhasil.',
         ]);
     }
 
@@ -80,7 +81,7 @@ class AuthController extends Controller
     {
         return response()->json([
             'success' => true,
-            'message' => 'Authenticated user retrieved',
+            'message' => 'Data pengguna berhasil diambil.',
             'data' => new AuthResource($request->user()),
         ]);
     }
@@ -91,7 +92,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Token refreshed',
+            'message' => 'Token berhasil diperbarui.',
             'data' => [
                 'access_token' => $token,
                 'refresh_token' => $token,
@@ -108,8 +109,8 @@ class AuthController extends Controller
         return response()->json([
             'success' => $status === Password::RESET_LINK_SENT,
             'message' => $status === Password::RESET_LINK_SENT
-                ? 'Password reset link sent'
-                : 'Unable to send password reset link',
+                ? 'Tautan reset kata sandi telah dikirim ke email Anda.'
+                : 'Gagal mengirim tautan reset kata sandi.',
         ], $status === Password::RESET_LINK_SENT ? 200 : 422);
     }
 
@@ -132,8 +133,8 @@ class AuthController extends Controller
         return response()->json([
             'success' => $status === Password::PASSWORD_RESET,
             'message' => $status === Password::PASSWORD_RESET
-                ? 'Password has been reset'
-                : 'Failed to reset password',
+                ? 'Kata sandi berhasil diatur ulang.'
+                : 'Gagal mengatur ulang kata sandi.',
         ], $status === Password::PASSWORD_RESET ? 200 : 422);
     }
 
@@ -157,7 +158,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Profile updated successfully',
+            'message' => 'Profil berhasil diperbarui.',
             'data' => new AuthResource($user),
         ]);
     }

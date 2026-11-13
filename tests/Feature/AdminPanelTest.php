@@ -937,6 +937,40 @@ class AdminPanelTest extends TestCase
         $this->assertDatabaseMissing('attendances', ['id' => $attendance->id]);
     }
 
+    public function test_create_member_handles_non_sequential_and_existing_member_codes(): void
+    {
+        $admin = $this->adminWithSeededRole('Super admin');
+
+        // Simulate gaps and out-of-order codes like in production
+        Member::factory()->create(['member_code' => 'MBR000031']);
+        Member::factory()->create(['member_code' => 'MBR000060']);
+
+        $this->assertSame('MBR000061', Member::nextMemberCode());
+
+        $this->actingAs($admin);
+
+        Livewire::test(CreateMember::class)
+            ->fillForm([
+                'user_mode' => 'new',
+                'new_user_name' => 'Member Gap Test',
+                'new_user_email' => 'gaptest@example.test',
+                'new_user_password' => 'secret12345',
+                'joined_at' => today()->toDateString(),
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $this->assertDatabaseHas('members', [
+            'member_code' => 'MBR000061',
+        ]);
+    }
+
+    public function test_password_reset_route_is_defined(): void
+    {
+        $response = $this->get(route('password.reset', ['token' => 'dummy-token']));
+        $response->assertOk();
+    }
+
     private function superAdmin(): User
     {
         $admin = User::factory()->create();

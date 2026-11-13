@@ -63,8 +63,28 @@ class Member extends Model
 
     public static function nextMemberCode(): string
     {
-        $lastId = (int) static::query()->max('id');
+        $maxNumber = (int) static::query()->max('id');
 
-        return 'MBR'.str_pad((string) ($lastId + 1), 6, '0', STR_PAD_LEFT);
+        $codes = static::query()
+            ->where('member_code', 'LIKE', 'MBR%')
+            ->pluck('member_code');
+
+        foreach ($codes as $code) {
+            if (preg_match('/^MBR(\d+)$/i', (string) $code, $matches)) {
+                $num = (int) $matches[1];
+                if ($num > $maxNumber) {
+                    $maxNumber = $num;
+                }
+            }
+        }
+
+        $candidateNumber = $maxNumber + 1;
+
+        do {
+            $code = 'MBR'.str_pad((string) $candidateNumber, 6, '0', STR_PAD_LEFT);
+            $candidateNumber++;
+        } while (static::query()->where('member_code', $code)->exists());
+
+        return $code;
     }
 }

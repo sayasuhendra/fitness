@@ -418,8 +418,6 @@ class LocationOperations extends Page
 
     private function nextMemberCode(): string
     {
-        $lastId = (int) Member::query()->max('id');
-
-        return 'MBR'.str_pad((string) ($lastId + 1), 6, '0', STR_PAD_LEFT);
+        return Member::nextMemberCode();
     }
 }

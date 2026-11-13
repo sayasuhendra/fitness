@@ -529,4 +529,18 @@ class FitnessApiTest extends TestCase
         $this->assertEquals('09:30:00', $updatedSessions->first()->start_time);
         $this->assertEquals(25, $updatedSessions->first()->capacity);
     }
+
+    public function test_user_can_permanently_delete_account(): void
+    {
+        $member = $this->actingMember();
+        $user = $member->user;
+
+        $response = $this->deleteJson('/api/v1/profile');
+
+        $response->assertOk()
+            ->assertJsonPath('success', true);
+
+        $this->assertDatabaseMissing('users', ['id' => $user->id]);
+        $this->assertDatabaseMissing('members', ['id' => $member->id]);
+    }
 }

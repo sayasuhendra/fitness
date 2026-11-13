@@ -33,7 +33,7 @@ class CreateMember extends CreateRecord
 
             Role::findOrCreate('Member', 'web');
             $user->assignRole('Member');
-            $data['member_code'] = !empty($data['member_code']) ? $data['member_code'] : $this->nextMemberCode();
+            $data['member_code'] = !empty($data['member_code']) ? $data['member_code'] : Member::nextMemberCode();
 
             unset(
                 $data['user_mode'],
@@ -49,8 +49,6 @@ class CreateMember extends CreateRecord
 
     private function nextMemberCode(): string
     {
-        $lastId = (int) Member::query()->max('id');
-
-        return 'MBR'.str_pad((string) ($lastId + 1), 6, '0', STR_PAD_LEFT);
+        return Member::nextMemberCode();
     }
 }

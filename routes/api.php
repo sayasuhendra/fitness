@@ -26,6 +26,7 @@ Route::prefix('v1')->group(function () {
         Route::post('auth/refresh', [AuthController::class, 'refresh']);
         Route::put('auth/profile', [AuthController::class, 'updateProfile']);
         Route::match(['put', 'post'], 'profile', [ProfileController::class, 'update']);
+        Route::delete('profile', [ProfileController::class, 'destroy']);
         Route::put('profile/change-password', [ProfileController::class, 'changePassword']);
 
         Route::get('memberships', [MembershipController::class, 'index']);

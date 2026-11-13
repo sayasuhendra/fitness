@@ -40,4 +40,17 @@ class ProfileController extends Controller
 
         return ApiResponder::success(null, 'Password changed');
     }
+
+    public function destroy(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        // Revoke all Sanctum tokens
+        $user->tokens()->delete();
+
+        // Permanently delete the user account (cascades to related records)
+        $user->delete();
+
+        return ApiResponder::success(null, 'Akun berhasil dihapus secara permanen.');
+    }
 }

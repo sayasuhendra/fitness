@@ -2,12 +2,14 @@
 
 namespace App\Providers;
 
+use App\Models\User;
 use App\Repositories\Contracts\ClassRepository;
 use App\Repositories\Contracts\MembershipRepository;
 use App\Repositories\Contracts\ProductRepository;
 use App\Repositories\Eloquent\EloquentClassRepository;
 use App\Repositories\Eloquent\EloquentMembershipRepository;
 use App\Repositories\Eloquent\EloquentProductRepository;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -29,11 +31,15 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::before(function ($user, string $ability): ?bool {
-            if (method_exists($user, 'hasAnyRole') && $user->hasAnyRole(['Owner', 'Super admin'])) {
+            if (method_exists($user, 'hasAnyRole') && $user->hasAnyRole(['Owner', 'Super admin', 'super_admin'])) {
                 return true;
             }
 
             return null;
+        });
+
+        ResetPassword::createUrlUsing(function (User $user, string $token) {
+            return url('/reset-password/' . $token . '?email=' . urlencode($user->email));
         });
     }
 }
