@@ -65,15 +65,13 @@ class CheckInMemberAction
                 ->where('attendance_type', $attendanceType)
                 ->when(
                     $booking,
-                    fn ($query) => $query->where('class_booking_id', $booking->id),
-                    fn ($query) => $query->whereNull('class_booking_id'),
+                    fn ($query) => $query->where('class_booking_id', $booking->id)->whereDate('check_in_time', now()->toDateString()),
+                    fn ($query) => $query->when(
+                        $personalTrainerSession,
+                        fn ($q) => $q->where('personal_trainer_session_id', $personalTrainerSession->id)->whereDate('check_in_time', now()->toDateString()),
+                        fn ($q) => $q->whereNull('class_booking_id')->whereNull('personal_trainer_session_id')->where('check_in_time', '>=', now()->subSeconds(30)),
+                    ),
                 )
-                ->when(
-                    $personalTrainerSession,
-                    fn ($query) => $query->where('personal_trainer_session_id', $personalTrainerSession->id),
-                    fn ($query) => $query->whereNull('personal_trainer_session_id'),
-                )
-                ->whereDate('check_in_time', now()->toDateString())
                 ->first();
 
             if ($existing !== null) {
@@ -82,7 +80,7 @@ class CheckInMemberAction
 
             if ($membership instanceof MembershipPurchase) {
                 if (! $membership->hasRemainingVisits($sessionUnits)) {
-                    throw ValidationException::withMessages(['membership' => 'Kuota kunjungan membership sudah habis.']);
+                    throw ValidationException::withMessages(['membership' => 'Kuota kunjungan membership tidak mencukupi untuk jumlah sesi yang dipilih.']);
                 }
 
                 if ($membership->visits_allowed !== null) {
@@ -90,19 +88,23 @@ class CheckInMemberAction
                 }
             }
 
-            $attendance = Attendance::query()->create([
-                'member_id' => $member->id,
-                ...AdminShift::stamp($admin),
-                'fitness_class_id' => $booking?->fitness_class_id,
-                'class_session_id' => $booking?->class_session_id,
-                'class_booking_id' => $booking?->id,
-                'personal_trainer_session_id' => $personalTrainerSession?->id,
-                'membership_purchase_id' => $membership?->id,
-                'attendance_type' => $attendanceType,
-                'check_in_time' => now(),
-                'status' => 'present',
-                'location' => $location ?? 'Akhwat Gym Studio',
-            ]);
+            $firstAttendance = null;
+            for ($i = 0; $i < $sessionUnits; $i++) {
+                $att = Attendance::query()->create([
+                    'member_id' => $member->id,
+                    ...AdminShift::stamp($admin),
+                    'fitness_class_id' => $booking?->fitness_class_id,
+                    'class_session_id' => $booking?->class_session_id,
+                    'class_booking_id' => $booking?->id,
+                    'personal_trainer_session_id' => $personalTrainerSession?->id,
+                    'membership_purchase_id' => $membership?->id,
+                    'attendance_type' => $attendanceType,
+                    'check_in_time' => now()->addSeconds($i),
+                    'status' => 'present',
+                    'location' => $location ?? 'Akhwat Gym Studio',
+                ]);
+                $firstAttendance ??= $att;
+            }
 
             if ($personalTrainerSession !== null) {
                 $personalTrainerSession->update([
@@ -111,7 +113,7 @@ class CheckInMemberAction
                 ]);
             }
 
-            return $attendance;
+            return $firstAttendance;
         });
     }
 

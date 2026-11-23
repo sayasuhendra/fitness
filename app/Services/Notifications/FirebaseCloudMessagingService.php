@@ -43,6 +43,23 @@ class FirebaseCloudMessagingService
                         'title' => $title,
                         'body' => $body,
                     ],
+                    'android' => [
+                        'priority' => 'high',
+                        'notification' => [
+                            'channel_id' => 'akhwat_gym_notifications',
+                            'sound' => 'default',
+                            'default_sound' => true,
+                            'default_vibrate_timings' => true,
+                            'notification_priority' => 'PRIORITY_HIGH',
+                        ],
+                    ],
+                    'apns' => [
+                        'payload' => [
+                            'aps' => [
+                                'sound' => 'default',
+                            ],
+                        ],
+                    ],
                     'data' => $this->stringifyData($data),
                 ],
             ]);

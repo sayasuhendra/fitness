@@ -75,24 +75,29 @@ class ScanMemberQr extends Page
                 ->with('user')
                 ->findOrFail((int) ($payload['member_id'] ?? 0));
 
+            $sessionsCount = (int) ($payload['sessions_count'] ?? 1);
+            $sessionsCount = in_array($sessionsCount, [1, 2], true) ? $sessionsCount : 1;
+
             $attendance = app(CheckInMemberAction::class)->execute(
                 member: $member,
                 attendanceType: 'gym_visit',
                 location: $this->location,
                 admin: auth()->user(),
+                sessionUnits: $sessionsCount,
             );
 
             $this->lastCheckIn = [
                 'id' => $attendance->id,
                 'member' => $member->user?->name ?? "Member #{$member->id}",
                 'member_code' => $member->member_code,
+                'sessions_count' => $sessionsCount,
                 'time' => $attendance->check_in_time->timezone(config('app.timezone'))->format('d M Y H:i'),
                 'location' => $attendance->location,
             ];
 
             Notification::make()
                 ->title('Check-in berhasil')
-                ->body(($this->lastCheckIn['member'] ?? 'Member').' sudah tercatat hadir.')
+                ->body(($this->lastCheckIn['member'] ?? 'Member')." tercatat hadir ({$sessionsCount} sesi).")
                 ->success()
                 ->send();
         } catch (ValidationException $exception) {

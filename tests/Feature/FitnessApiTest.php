@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Actions\Orders\CancelOrderAction;
 use App\Actions\Payments\ApprovePaymentConfirmationAction;
+use App\Models\Attendance;
 use App\Models\ClassBooking;
 use App\Models\DeviceToken;
 use App\Models\FitnessClass;
@@ -542,5 +543,47 @@ class FitnessApiTest extends TestCase
 
         $this->assertDatabaseMissing('users', ['id' => $user->id]);
         $this->assertDatabaseMissing('members', ['id' => $member->id]);
+    }
+
+    public function test_member_qr_code_with_two_sessions_embeds_sessions_count(): void
+    {
+        $member = $this->actingMember(withMembership: true);
+
+        $response = $this->getJson('/api/v1/attendance/qr-code?sessions_count=2')
+            ->assertOk();
+
+        $payload = json_decode(Crypt::decryptString($response->json('data')), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame($member->id, $payload['member_id']);
+        $this->assertSame(2, $payload['sessions_count']);
+    }
+
+    public function test_check_in_with_two_sessions_deducts_two_visits_and_creates_records(): void
+    {
+        $member = $this->actingMember(withMembership: true);
+        $membership = $member->activeMembership();
+        $membership->update(['visits_allowed' => 10, 'visits_used' => 0]);
+
+        $qrResponse = $this->getJson('/api/v1/attendance/qr-code?sessions_count=2')->assertOk();
+        $qrPayload = $qrResponse->json('data');
+
+        $admin = User::factory()->create();
+        Sanctum::actingAs($admin);
+
+        $response = $this->postJson('/api/v1/attendance/check-in', [
+            'qr_payload' => $qrPayload,
+            'attendance_type' => 'gym_visit',
+        ])->assertCreated();
+
+        $membership->refresh();
+        $this->assertSame(2, $membership->visits_used);
+        $this->assertSame(2, Attendance::query()->where('member_id', $member->id)->count());
+    }
+
+    public function test_unauthenticated_api_request_returns_401_json(): void
+    {
+        $this->get('/api/v1/classes?date='.now()->toDateString())
+            ->assertStatus(401)
+            ->assertJson(['message' => 'Unauthenticated.']);
     }
 }

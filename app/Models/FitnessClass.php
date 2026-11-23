@@ -62,6 +62,26 @@ class FitnessClass extends Model
         static::restoring(function (FitnessClass $class): void {
             $class->sessions()->onlyTrashed()->each(fn (ClassSession $session) => $session->restore());
         });
+
+        static::saved(function (FitnessClass $class): void {
+            $class->sessions()
+                ->where('status', 'scheduled')
+                ->whereDate('session_date', '>=', now()->toDateString())
+                ->each(function (ClassSession $session) use ($class): void {
+                    if (! $class->is_active || ! $class->occursOn($session->session_date->toDateString())) {
+                        if ($session->bookings()->count() === 0) {
+                            $session->delete();
+                        }
+                    } else {
+                        $session->update([
+                            'trainer_id' => $class->trainer_id,
+                            'start_time' => $class->start_time,
+                            'end_time' => $class->end_time,
+                            'capacity' => $class->capacity,
+                        ]);
+                    }
+                });
+        });
     }
 
     public function trainer(): BelongsTo
@@ -101,18 +121,20 @@ class FitnessClass extends Model
     {
         $target = Carbon::parse($date)->startOfDay();
 
-        if ($this->class_date->isSameDay($target)) {
-            return true;
+        if (! $this->is_recurring) {
+            return $this->class_date->isSameDay($target);
         }
 
-        if (! $this->is_recurring || $target->lessThan($this->class_date)) {
+        if ($target->lessThan($this->class_date->startOfDay())) {
             return false;
         }
 
-        if ($this->recurrence_ends_at !== null && $target->greaterThan($this->recurrence_ends_at)) {
+        if ($this->recurrence_ends_at !== null && $target->greaterThan($this->recurrence_ends_at->startOfDay())) {
             return false;
         }
 
-        return in_array(strtolower($target->englishDayOfWeek), $this->recurring_days ?? [], true);
+        $days = array_map('strtolower', $this->recurring_days ?? []);
+
+        return in_array(strtolower($target->englishDayOfWeek), $days, true);
     }
 }

@@ -31,8 +31,12 @@ class AttendanceController extends Controller
 
     public function qrCode(Request $request): JsonResponse
     {
+        $sessionsCount = (int) $request->input('sessions_count', 1);
+        $sessionsCount = in_array($sessionsCount, [1, 2], true) ? $sessionsCount : 1;
+
         $payload = Crypt::encryptString(json_encode([
             'member_id' => $request->user()->member->id,
+            'sessions_count' => $sessionsCount,
             'expires_at' => now()->addMinutes(60)->toISOString(),
         ], JSON_THROW_ON_ERROR));
 
@@ -42,6 +46,7 @@ class AttendanceController extends Controller
     public function checkIn(CheckInRequest $request, CheckInMemberAction $action): JsonResponse
     {
         $memberId = $request->validated('member_id');
+        $sessionsCount = (int) ($request->validated('sessions_count') ?? 1);
 
         if ($request->filled('qr_payload')) {
             $payload = json_decode(Crypt::decryptString($request->validated('qr_payload')), true, 512, JSON_THROW_ON_ERROR);
@@ -51,11 +56,16 @@ class AttendanceController extends Controller
             }
 
             $memberId = $payload['member_id'];
+            if (! empty($payload['sessions_count'])) {
+                $sessionsCount = (int) $payload['sessions_count'];
+            }
         }
 
         if ($memberId === null) {
             throw ValidationException::withMessages(['member_id' => 'Pilih member atau scan QR member.']);
         }
+
+        $sessionsCount = in_array($sessionsCount, [1, 2], true) ? $sessionsCount : 1;
 
         $member = Member::query()->findOrFail($memberId);
         $booking = $request->filled('class_booking_id')
@@ -71,6 +81,7 @@ class AttendanceController extends Controller
             booking: $booking,
             personalTrainerSession: $personalTrainerSession,
             location: $request->validated('location') ?? null,
+            sessionUnits: $sessionsCount,
         );
 
         return ApiResponder::success(new AttendanceResource($attendance->load('fitnessClass')), 'Check-in berhasil dicatat', 201);

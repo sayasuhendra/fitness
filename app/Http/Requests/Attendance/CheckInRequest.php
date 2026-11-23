@@ -22,6 +22,7 @@ class CheckInRequest extends FormRequest
             'class_booking_id' => ['nullable', 'integer', Rule::exists('class_bookings', 'id')],
             'personal_trainer_session_id' => ['nullable', 'integer', Rule::exists('personal_trainer_sessions', 'id')],
             'attendance_type' => ['required', 'string', Rule::in(['gym_visit', 'class_attendance', 'personal_trainer_session'])],
+            'sessions_count' => ['nullable', 'integer', Rule::in([1, 2])],
             'location' => ['nullable', 'string', 'max:160'],
         ];
     }

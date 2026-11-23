@@ -26,6 +26,13 @@ class ClassSessionGenerator
 
         $activeClassIds = $classes->pluck('id')->all();
 
+        ClassSession::query()
+            ->whereDate('session_date', $targetDate)
+            ->where('status', 'scheduled')
+            ->whereNotIn('fitness_class_id', $activeClassIds)
+            ->whereDoesntHave('bookings')
+            ->delete();
+
         foreach ($classes as $class) {
             $existingSession = ClassSession::query()
                 ->where('fitness_class_id', $class->id)
