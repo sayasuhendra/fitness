@@ -42,6 +42,19 @@ class MembershipPackage extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::deleting(function (MembershipPackage $package): void {
+            $count = $package->purchases()->count();
+
+            if ($count > 0) {
+                throw new \DomainException(
+                    "Paket membership '{$package->name}' tidak dapat dihapus karena masih digunakan oleh {$count} data transaksi / member terdaftar. Silakan nonaktifkan status paket agar tidak dapat dipilih lagi."
+                );
+            }
+        });
+    }
+
     public function purchases(): HasMany
     {
         return $this->hasMany(MembershipPurchase::class);

@@ -10,6 +10,8 @@ use App\Filament\Pages\SendMemberNotification;
 use App\Filament\Pages\ShiftRevenueReport;
 use App\Filament\Resources\Members\Pages\CreateMember;
 use App\Filament\Resources\Members\Pages\EditMember;
+use App\Filament\Resources\MembershipPackages\Pages\EditMembershipPackage;
+use App\Filament\Resources\MembershipPackages\Pages\ListMembershipPackages;
 use App\Filament\Resources\Trainers\Pages\CreateTrainer;
 use App\Filament\Widgets\BookingAttendanceChart;
 use App\Filament\Widgets\RevenueTrendChart;
@@ -1031,6 +1033,31 @@ class AdminPanelTest extends TestCase
     {
         $response = $this->get(route('password.reset', ['token' => 'dummy-token']));
         $response->assertOk();
+    }
+
+    public function test_cannot_delete_membership_package_with_purchases(): void
+    {
+        $package = MembershipPackage::factory()->create(['name' => 'Paket Gold']);
+        $member = Member::factory()->create();
+        MembershipPurchase::factory()->create([
+            'member_id' => $member->id,
+            'membership_package_id' => $package->id,
+        ]);
+
+        $this->expectException(\DomainException::class);
+        $this->expectExceptionMessage("Paket membership 'Paket Gold' tidak dapat dihapus karena masih digunakan oleh 1 data transaksi / member terdaftar. Silakan nonaktifkan status paket agar tidak dapat dipilih lagi.");
+
+        $package->delete();
+    }
+
+    public function test_can_delete_membership_package_without_purchases(): void
+    {
+        $package = MembershipPackage::factory()->create(['name' => 'Paket Uji Coba']);
+        $packageId = $package->id;
+
+        $package->delete();
+
+        $this->assertDatabaseMissing('membership_packages', ['id' => $packageId]);
     }
 
     private function superAdmin(): User

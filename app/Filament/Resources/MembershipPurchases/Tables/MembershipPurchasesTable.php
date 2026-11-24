@@ -93,11 +93,25 @@ class MembershipPurchasesTable
                     ]),
             ])
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                    ->label('Ubah'),
+                \Filament\Actions\DeleteAction::make()
+                    ->label('Hapus')
+                    ->modalHeading('Hapus Transaksi Membership')
+                    ->modalDescription('Apakah Anda yakin ingin menghapus data transaksi membership ini?')
+                    ->modalSubmitActionLabel('Ya, Hapus')
+                    ->modalCancelActionLabel('Batal')
+                    ->successNotificationTitle('Transaksi membership berhasil dihapus'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->label('Hapus Terpilih')
+                        ->modalHeading('Hapus Transaksi Terpilih')
+                        ->modalDescription('Apakah Anda yakin ingin menghapus transaksi membership yang dipilih?')
+                        ->modalSubmitActionLabel('Ya, Hapus')
+                        ->modalCancelActionLabel('Batal')
+                        ->successNotificationTitle('Transaksi terpilih berhasil dihapus'),
                 ]),
             ])
             ->poll('10s');

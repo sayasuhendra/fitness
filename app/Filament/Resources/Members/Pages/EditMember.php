@@ -34,7 +34,13 @@ class EditMember extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            DeleteAction::make(),
+            DeleteAction::make()
+                ->label('Hapus Member')
+                ->modalHeading(fn ($record): string => "Hapus Member: {$record->user?->name}")
+                ->modalDescription('Apakah Anda yakin ingin menghapus member ini? Menghapus member akan menghapus seluruh data membership, riwayat booking, absensi, dan pesanan produk terkait.')
+                ->modalSubmitActionLabel('Ya, Hapus Member')
+                ->modalCancelActionLabel('Batal')
+                ->successNotificationTitle('Member berhasil dihapus'),
         ];
     }
 }
