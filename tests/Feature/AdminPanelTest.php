@@ -1099,6 +1099,24 @@ class AdminPanelTest extends TestCase
         $this->assertFalse($pkg->fresh()->is_active);
     }
 
+    public function test_member_pwa_routes_are_accessible(): void
+    {
+        $response = $this->get('/member');
+        $response->assertOk();
+        $response->assertSee('Akhwat Gym');
+        $response->assertSee('<base href="/member/">', false);
+
+        $deepRouteResponse = $this->get('/member/dashboard');
+        $deepRouteResponse->assertOk();
+        $deepRouteResponse->assertSee('Akhwat Gym');
+
+        $manifestResponse = $this->get('/member/manifest.json');
+        $manifestResponse->assertOk();
+
+        $this->assertFileExists(public_path('member/manifest.json'));
+        $this->assertStringContainsString('/member/', file_get_contents(public_path('member/manifest.json')));
+    }
+
     private function superAdmin(): User
     {
         $admin = User::factory()->create();
