@@ -43,6 +43,11 @@
             box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
         }
 
+        .location-operations-card .inline-input-group input,
+        .location-operations-card .inline-input-group select {
+            margin-top: 0 !important;
+        }
+
         .location-operations-card select {
             padding-right: 2.25rem;
         }
@@ -282,7 +287,7 @@
 
                 <canvas x-ref="canvas" class="hidden"></canvas>
 
-                <div class="flex flex-wrap gap-2">
+                <div class="flex flex-wrap items-center gap-2">
                     <x-filament::button type="button" x-on:click="start()" icon="heroicon-m-camera" size="sm">
                         Mulai Kamera
                     </x-filament::button>
@@ -298,36 +303,42 @@
                     class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200"
                 ></div>
 
-                <div class="pt-2 border-t border-gray-200 dark:border-gray-800">
-                    <label class="block">
-                        <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Input Kode Member / Scanner Gun</span>
-                        <div class="mt-1 flex gap-2">
-                            <input
-                                x-model="manualInput"
-                                x-on:keydown.enter.prevent="if (manualInput.trim()) { $wire.submitScan(manualInput.trim()); manualInput = ''; }"
-                                type="text"
-                                placeholder="Scan / ketik kode (contoh: F - 001) lalu Enter..."
-                                class="block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white text-sm"
-                            />
-                            <x-filament::button
-                                type="button"
-                                x-on:click="if (manualInput.trim()) { $wire.submitScan(manualInput.trim()); manualInput = ''; }"
-                                icon="heroicon-m-qr-code"
-                                size="sm"
-                            >
-                                Check-In
-                            </x-filament::button>
-                        </div>
+                <div class="border-t border-gray-200 dark:border-gray-800 pt-4">
+                    <label for="manualQrInput" class="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                        Input Kode Member / Scanner Gun
                     </label>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 mb-2">
+                        Tempel payload QR atau ketik kode member (misal: F - 001) lalu tekan Enter.
+                    </p>
+                    <div class="inline-input-group flex items-center gap-2">
+                        <input
+                            id="manualQrInput"
+                            x-model="manualInput"
+                            x-on:keydown.enter.prevent="if (manualInput.trim()) { $wire.submitScan(manualInput.trim()); manualInput = ''; }"
+                            type="text"
+                            placeholder="Ketik atau scan kode member..."
+                            class="!mt-0 block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white text-sm"
+                            style="min-height: 2.5rem; height: 2.5rem;"
+                        />
+                        <x-filament::button
+                            type="button"
+                            x-on:click="if (manualInput.trim()) { $wire.submitScan(manualInput.trim()); manualInput = ''; }"
+                            icon="heroicon-m-qr-code"
+                            class="shrink-0"
+                            style="height: 2.5rem;"
+                        >
+                            Check-In
+                        </x-filament::button>
+                    </div>
                 </div>
 
                 @if ($lastCheckIn)
-                    <div class="mt-3 rounded-lg border border-green-200 bg-green-50 p-3 text-sm dark:border-green-900 dark:bg-green-950 dark:text-green-200">
+                    <div class="rounded-lg border border-green-200 bg-green-50 p-3.5 text-sm dark:border-green-900 dark:bg-green-950 dark:text-green-200">
                         <div class="font-semibold text-green-800 dark:text-green-300 flex items-center gap-1.5">
                             <x-filament::icon icon="heroicon-m-check-badge" class="w-4 h-4 text-green-600" />
                             Check-In Berhasil!
                         </div>
-                        <div class="mt-1 grid grid-cols-2 gap-1 text-xs">
+                        <div class="mt-2 grid grid-cols-2 gap-2 text-xs">
                             <div><span class="text-gray-500">Member:</span> <strong>{{ $lastCheckIn['member'] }}</strong></div>
                             <div><span class="text-gray-500">Kode:</span> <strong>{{ $lastCheckIn['member_code'] }}</strong></div>
                             <div><span class="text-gray-500">Waktu:</span> {{ $lastCheckIn['time'] }}</div>
@@ -429,12 +440,12 @@
                 <label class="block">
                     <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Member</span>
                     <select wire:model="orderMemberId" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white">
-                        <option value="">Pilih member</option>
+                        <option value="">Pilih member...</option>
                         @foreach ($this->memberOptions() as $id => $label)
                             <option value="{{ $id }}">{{ $label }}</option>
                         @endforeach
                     </select>
-                    @error('orderMemberId') <span class="text-sm text-danger-600">{{ $message }}</span> @enderror
+                    @error('orderMemberId') <span class="text-sm text-danger-600 block mt-1">{{ $message }}</span> @enderror
                 </label>
 
                 <label class="block">
@@ -444,40 +455,52 @@
                         <option value="qris">QRIS</option>
                         <option value="bank_transfer">Transfer Bank</option>
                     </select>
+                    @error('orderPaymentMethod') <span class="text-sm text-danger-600 block mt-1">{{ $message }}</span> @enderror
                 </label>
             </div>
 
-            <div class="location-operations-form-grid mt-4">
-                <label class="block">
-                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Produk</span>
-                    <select wire:model="productId" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white">
-                        <option value="">Pilih produk</option>
-                        @foreach ($this->productOptions() as $id => $label)
-                            <option value="{{ $id }}">{{ $label }}</option>
-                        @endforeach
-                    </select>
-                    @error('productId') <span class="text-sm text-danger-600">{{ $message }}</span> @enderror
-                </label>
+            <div class="border-t border-gray-200 dark:border-gray-800 pt-4 mt-4">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                    <div class="md:col-span-6 lg:col-span-7">
+                        <label class="block">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Pilih Produk</span>
+                            <select wire:model="productId" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                                <option value="">Pilih produk...</option>
+                                @foreach ($this->productOptions() as $id => $label)
+                                    <option value="{{ $id }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                            @error('productId') <span class="text-sm text-danger-600 block mt-1">{{ $message }}</span> @enderror
+                        </label>
+                    </div>
 
-                <label class="block">
-                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Jumlah</span>
-                    <input wire:model="productQuantity" type="number" min="1" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
-                    @error('productQuantity') <span class="text-sm text-danger-600">{{ $message }}</span> @enderror
-                </label>
-            </div>
+                    <div class="md:col-span-3 lg:col-span-2">
+                        <label class="block">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Jumlah</span>
+                            <input wire:model="productQuantity" type="number" min="1" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+                            @error('productQuantity') <span class="text-sm text-danger-600 block mt-1">{{ $message }}</span> @enderror
+                        </label>
+                    </div>
 
-            <div class="location-operations-actions">
-                <x-filament::button wire:click="addProductToOrder" icon="heroicon-m-plus">
-                    Tambah ke Pesanan
-                </x-filament::button>
+                    <div class="md:col-span-3 lg:col-span-3">
+                        <x-filament::button
+                            wire:click="addProductToOrder"
+                            icon="heroicon-m-plus"
+                            class="w-full flex items-center justify-center"
+                            style="min-height: 2.75rem; height: 2.75rem;"
+                        >
+                            Tambah ke Pesanan
+                        </x-filament::button>
+                    </div>
+                </div>
             </div>
 
             @if ($orderItems === [])
-                <div class="location-operations-empty-order">
-                    Belum ada produk di pesanan. Pilih produk dan jumlah, lalu klik tambah.
+                <div class="location-operations-empty-order mt-4">
+                    Belum ada produk di pesanan. Pilih produk dan jumlah di atas, lalu klik <strong>Tambah ke Pesanan</strong>.
                 </div>
             @else
-                <div class="location-operations-order-items">
+                <div class="location-operations-order-items mt-4">
                     @foreach ($orderItems as $index => $item)
                         <div class="location-operations-order-row" wire:key="order-item-{{ $item['product_id'] }}">
                             <div>
@@ -515,8 +538,8 @@
                 </div>
             @endif
 
-            <div class="location-operations-actions">
-                <x-filament::button wire:click="sellProduct" icon="heroicon-m-shopping-bag">
+            <div class="mt-4">
+                <x-filament::button wire:click="sellProduct" icon="heroicon-m-shopping-bag" size="lg">
                     Buat Pesanan Produk
                 </x-filament::button>
             </div>
