@@ -716,6 +716,68 @@ class AdminPanelTest extends TestCase
         $this->assertSame('completed', $session->fresh()->status);
     }
 
+    public function test_location_operations_scan_qr_check_in_with_encrypted_payload(): void
+    {
+        $admin = $this->adminWithSeededRole('Admin di lokasi');
+        $member = Member::factory()->create();
+        $package = MembershipPackage::factory()->create(['package_type' => 'membership']);
+        MembershipPurchase::factory()->create([
+            'member_id' => $member->id,
+            'membership_package_id' => $package->id,
+            'starts_at' => now()->subDay(),
+            'expires_at' => now()->addMonth(),
+            'status' => 'active',
+            'visits_allowed' => 10,
+            'visits_used' => 0,
+        ]);
+
+        $payload = Crypt::encryptString(json_encode([
+            'member_id' => $member->id,
+            'sessions_count' => 1,
+            'expires_at' => now()->addMinutes(5)->toISOString(),
+        ], JSON_THROW_ON_ERROR));
+
+        $this->actingAs($admin);
+
+        Livewire::test(LocationOperations::class)
+            ->call('submitScan', $payload)
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('attendances', [
+            'member_id' => $member->id,
+            'attendance_type' => 'gym_visit',
+            'handled_by' => $admin->id,
+        ]);
+    }
+
+    public function test_location_operations_scan_qr_check_in_with_member_code(): void
+    {
+        $admin = $this->adminWithSeededRole('Admin di lokasi');
+        $member = Member::factory()->create();
+        $package = MembershipPackage::factory()->create(['package_type' => 'membership']);
+        MembershipPurchase::factory()->create([
+            'member_id' => $member->id,
+            'membership_package_id' => $package->id,
+            'starts_at' => now()->subDay(),
+            'expires_at' => now()->addMonth(),
+            'status' => 'active',
+            'visits_allowed' => 10,
+            'visits_used' => 0,
+        ]);
+
+        $this->actingAs($admin);
+
+        Livewire::test(LocationOperations::class)
+            ->call('submitScan', $member->member_code)
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('attendances', [
+            'member_id' => $member->id,
+            'attendance_type' => 'gym_visit',
+            'handled_by' => $admin->id,
+        ]);
+    }
+
     public function test_location_admin_can_access_send_member_notification_page(): void
     {
         $admin = $this->adminWithSeededRole('Admin di lokasi');

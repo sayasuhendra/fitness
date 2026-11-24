@@ -24,9 +24,9 @@ class AppSettingResource extends Resource
 
     protected static ?string $modelLabel = 'Pengaturan';
 
-    protected static string|UnitEnum|null $navigationGroup = 'System';
+    protected static string|UnitEnum|null $navigationGroup = 'Pengaturan & Sistem';
 
-    protected static ?int $navigationSort = 90;
+    protected static ?int $navigationSort = 4;
 
     public static function form(Schema $schema): Schema
     {

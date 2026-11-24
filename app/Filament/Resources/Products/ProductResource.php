@@ -21,13 +21,13 @@ class ProductResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::BuildingStorefront;
 
-    protected static ?string $navigationLabel = 'Manajemen Produk';
+    protected static ?string $navigationLabel = 'Daftar Produk';
 
     protected static ?string $modelLabel = 'Produk';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Toko';
+    protected static string|UnitEnum|null $navigationGroup = 'Toko & Produk';
 
-    protected static ?int $navigationSort = 20;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {

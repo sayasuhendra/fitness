@@ -258,7 +258,169 @@
         </x-filament::section>
         </div>
 
+
         <div class="location-operations-card">
+        <x-filament::section>
+            <x-slot name="heading">Scan QR Member</x-slot>
+            <x-slot name="description">Scan QR member dari aplikasi mobile atau masukkan Kode Member.</x-slot>
+
+            <div
+                x-data="locationQrScanner({
+                    submit: (payload) => $wire.submitScan(payload),
+                })"
+                x-init="init()"
+                class="space-y-4"
+            >
+                <div class="overflow-hidden rounded-xl border border-gray-200 bg-gray-950 dark:border-gray-700">
+                    <video
+                        x-ref="video"
+                        class="aspect-video w-full bg-gray-950 object-cover"
+                        muted
+                        playsinline
+                    ></video>
+                </div>
+
+                <canvas x-ref="canvas" class="hidden"></canvas>
+
+                <div class="flex flex-wrap gap-2">
+                    <x-filament::button type="button" x-on:click="start()" icon="heroicon-m-camera" size="sm">
+                        Mulai Kamera
+                    </x-filament::button>
+
+                    <x-filament::button type="button" color="gray" x-on:click="stop()" icon="heroicon-m-stop" size="sm">
+                        Stop Kamera
+                    </x-filament::button>
+                </div>
+
+                <div
+                    x-show="message"
+                    x-text="message"
+                    class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200"
+                ></div>
+
+                <div class="pt-2 border-t border-gray-200 dark:border-gray-800">
+                    <label class="block">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Input Kode Member / Scanner Gun</span>
+                        <div class="mt-1 flex gap-2">
+                            <input
+                                x-model="manualInput"
+                                x-on:keydown.enter.prevent="if (manualInput.trim()) { $wire.submitScan(manualInput.trim()); manualInput = ''; }"
+                                type="text"
+                                placeholder="Scan / ketik kode (contoh: F - 001) lalu Enter..."
+                                class="block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white text-sm"
+                            />
+                            <x-filament::button
+                                type="button"
+                                x-on:click="if (manualInput.trim()) { $wire.submitScan(manualInput.trim()); manualInput = ''; }"
+                                icon="heroicon-m-qr-code"
+                                size="sm"
+                            >
+                                Check-In
+                            </x-filament::button>
+                        </div>
+                    </label>
+                </div>
+
+                @if ($lastCheckIn)
+                    <div class="mt-3 rounded-lg border border-green-200 bg-green-50 p-3 text-sm dark:border-green-900 dark:bg-green-950 dark:text-green-200">
+                        <div class="font-semibold text-green-800 dark:text-green-300 flex items-center gap-1.5">
+                            <x-filament::icon icon="heroicon-m-check-badge" class="w-4 h-4 text-green-600" />
+                            Check-In Berhasil!
+                        </div>
+                        <div class="mt-1 grid grid-cols-2 gap-1 text-xs">
+                            <div><span class="text-gray-500">Member:</span> <strong>{{ $lastCheckIn['member'] }}</strong></div>
+                            <div><span class="text-gray-500">Kode:</span> <strong>{{ $lastCheckIn['member_code'] }}</strong></div>
+                            <div><span class="text-gray-500">Waktu:</span> {{ $lastCheckIn['time'] }}</div>
+                            <div><span class="text-gray-500">Sesi:</span> {{ $lastCheckIn['sessions_count'] }} sesi</div>
+                        </div>
+                    </div>
+                @endif
+            </div>
+        </x-filament::section>
+        </div>
+
+        <div class="location-operations-card">
+        <x-filament::section>
+            <x-slot name="heading">Check-In Manual</x-slot>
+            <x-slot name="description">Pilih Gym untuk check-in member langsung. Untuk Kelas atau Personal Trainer, pilih booking/sesi yang sudah terjadwal.</x-slot>
+
+            <div class="location-operations-form-grid">
+                <label class="block">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Jenis Check-In</span>
+                    <select wire:model.live="checkInType" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                        <option value="gym_visit">Gym</option>
+                        <option value="class_attendance">Kelas</option>
+                        <option value="personal_trainer_session">Personal Trainer</option>
+                    </select>
+                    @error('checkInType') <span class="text-sm text-danger-600">{{ $message }}</span> @enderror
+                </label>
+
+                @if ($checkInType === 'gym_visit')
+                    <label class="block">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Member</span>
+                        <select wire:model="checkInMemberId" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                            <option value="">Pilih member</option>
+                            @foreach ($this->memberOptions() as $id => $label)
+                                <option value="{{ $id }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                        @error('checkInMemberId') <span class="text-sm text-danger-600">{{ $message }}</span> @enderror
+                    </label>
+                @endif
+
+                @if ($checkInType === 'class_attendance')
+                    <label class="block">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Booking Kelas</span>
+                        <select wire:model="checkInClassBookingId" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                            <option value="">Pilih booking kelas</option>
+                            @foreach ($this->classBookingOptions() as $id => $label)
+                                <option value="{{ $id }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                        @error('checkInClassBookingId') <span class="text-sm text-danger-600">{{ $message }}</span> @enderror
+                    </label>
+                @endif
+
+                @if ($checkInType === 'personal_trainer_session')
+                    <label class="block">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Sesi Personal Trainer</span>
+                        <select wire:model="checkInPersonalTrainerSessionId" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                            <option value="">Pilih sesi personal trainer</option>
+                            @foreach ($this->personalTrainerSessionOptions() as $id => $label)
+                                <option value="{{ $id }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                        @error('checkInPersonalTrainerSessionId') <span class="text-sm text-danger-600">{{ $message }}</span> @enderror
+                    </label>
+                @endif
+
+                @if ($checkInType !== 'gym_visit')
+                    <label class="block">
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Jumlah Sesi</span>
+                        <select wire:model="checkInSessionUnits" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white">
+                            <option value="1">1 sesi</option>
+                            <option value="2">2 sesi sekaligus</option>
+                        </select>
+                        @error('checkInSessionUnits') <span class="text-sm text-danger-600">{{ $message }}</span> @enderror
+                    </label>
+                @endif
+
+                <label class="block">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Lokasi</span>
+                    <input wire:model="checkInLocation" type="text" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
+                    @error('checkInLocation') <span class="text-sm text-danger-600">{{ $message }}</span> @enderror
+                </label>
+            </div>
+
+            <div class="location-operations-actions">
+                <x-filament::button wire:click="manualCheckIn" icon="heroicon-m-check-circle">
+                    Check-In Sekarang
+                </x-filament::button>
+            </div>
+        </x-filament::section>
+        </div>
+
+        <div class="location-operations-card location-operations-card--wide">
         <x-filament::section>
             <x-slot name="heading">Pesan Produk</x-slot>
             <x-slot name="description">Buat pesanan produk dari admin lokasi. Stok langsung berkurang.</x-slot>
@@ -360,87 +522,96 @@
             </div>
         </x-filament::section>
         </div>
-
-        <div class="location-operations-card location-operations-card--wide">
-        <x-filament::section>
-            <x-slot name="heading">Check-In Manual</x-slot>
-            <x-slot name="description">Pilih Gym untuk check-in member langsung. Untuk Kelas atau Personal Trainer, pilih booking/sesi yang sudah terjadwal.</x-slot>
-
-            <div class="location-operations-form-grid">
-                <label class="block">
-                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Jenis Check-In</span>
-                    <select wire:model.live="checkInType" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white">
-                        <option value="gym_visit">Gym</option>
-                        <option value="class_attendance">Kelas</option>
-                        <option value="personal_trainer_session">Personal Trainer</option>
-                    </select>
-                    @error('checkInType') <span class="text-sm text-danger-600">{{ $message }}</span> @enderror
-                </label>
-
-                @if ($checkInType === 'gym_visit')
-                    <label class="block">
-                        <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Member</span>
-                        <select wire:model="checkInMemberId" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white">
-                            <option value="">Pilih member</option>
-                            @foreach ($this->memberOptions() as $id => $label)
-                                <option value="{{ $id }}">{{ $label }}</option>
-                            @endforeach
-                        </select>
-                        @error('checkInMemberId') <span class="text-sm text-danger-600">{{ $message }}</span> @enderror
-                    </label>
-                @endif
-
-                @if ($checkInType === 'class_attendance')
-                    <label class="block">
-                        <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Booking Kelas</span>
-                        <select wire:model="checkInClassBookingId" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white">
-                            <option value="">Pilih booking kelas</option>
-                            @foreach ($this->classBookingOptions() as $id => $label)
-                                <option value="{{ $id }}">{{ $label }}</option>
-                            @endforeach
-                        </select>
-                        @error('checkInClassBookingId') <span class="text-sm text-danger-600">{{ $message }}</span> @enderror
-                    </label>
-                @endif
-
-                @if ($checkInType === 'personal_trainer_session')
-                    <label class="block">
-                        <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Sesi Personal Trainer</span>
-                        <select wire:model="checkInPersonalTrainerSessionId" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white">
-                            <option value="">Pilih sesi personal trainer</option>
-                            @foreach ($this->personalTrainerSessionOptions() as $id => $label)
-                                <option value="{{ $id }}">{{ $label }}</option>
-                            @endforeach
-                        </select>
-                        @error('checkInPersonalTrainerSessionId') <span class="text-sm text-danger-600">{{ $message }}</span> @enderror
-                    </label>
-                @endif
-
-                @if ($checkInType !== 'gym_visit')
-                    <label class="block">
-                        <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Jumlah Sesi</span>
-                        <select wire:model="checkInSessionUnits" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white">
-                            <option value="1">1 sesi</option>
-                            <option value="2">2 sesi sekaligus</option>
-                        </select>
-                        @error('checkInSessionUnits') <span class="text-sm text-danger-600">{{ $message }}</span> @enderror
-                    </label>
-                @endif
-
-                <label class="block">
-                    <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Lokasi</span>
-                    <input wire:model="checkInLocation" type="text" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-white" />
-                    @error('checkInLocation') <span class="text-sm text-danger-600">{{ $message }}</span> @enderror
-                </label>
-            </div>
-
-            <div class="location-operations-actions">
-                <x-filament::button wire:click="manualCheckIn" icon="heroicon-m-check-circle">
-                    Check-In Sekarang
-                </x-filament::button>
-            </div>
-        </x-filament::section>
-        </div>
     </div>
     </div>
+
+    <script>
+        function initLocationQrScanner() {
+            if (window.Alpine && !window.Alpine.data('locationQrScanner')) {
+                Alpine.data('locationQrScanner', ({ submit }) => ({
+                    detector: null,
+                    stream: null,
+                    scanning: false,
+                    lastPayload: null,
+                    message: '',
+                    manualInput: '',
+
+                    async init() {
+                        if (!('BarcodeDetector' in window)) {
+                            this.message = 'Browser belum mendukung deteksi kamera otomatis. Gunakan Chrome Android / browser kompatibel, atau gunakan input kode / barcode scanner gun di bawah.';
+                            return;
+                        }
+
+                        this.detector = new BarcodeDetector({ formats: ['qr_code'] });
+                    },
+
+                    async start() {
+                        if (!this.detector) {
+                            this.message = 'Scanner kamera tidak tersedia di browser ini. Gunakan input kode / scanner gun di bawah.';
+                            return;
+                        }
+
+                        try {
+                            this.stream = await navigator.mediaDevices.getUserMedia({
+                                video: { facingMode: { ideal: 'environment' } },
+                                audio: false,
+                            });
+
+                            this.$refs.video.srcObject = this.stream;
+                            await this.$refs.video.play();
+                            this.scanning = true;
+                            this.message = 'Kamera aktif. Arahkan ke QR member.';
+                            this.scanLoop();
+                        } catch (error) {
+                            this.message = 'Kamera tidak bisa dibuka. Pastikan izin kamera diberikan dan akses web menggunakan HTTPS.';
+                        }
+                    },
+
+                    stop() {
+                        this.scanning = false;
+
+                        if (this.stream) {
+                            this.stream.getTracks().forEach((track) => track.stop());
+                            this.stream = null;
+                        }
+
+                        this.message = 'Kamera berhenti.';
+                    },
+
+                    async scanLoop() {
+                        if (!this.scanning || !this.detector) {
+                            return;
+                        }
+
+                        try {
+                            const barcodes = await this.detector.detect(this.$refs.video);
+
+                            if (barcodes.length > 0) {
+                                const rawValue = barcodes[0].rawValue;
+
+                                if (rawValue && rawValue !== this.lastPayload) {
+                                    this.lastPayload = rawValue;
+                                    submit(rawValue);
+                                    this.stop();
+                                    return;
+                                }
+                            }
+                        } catch (error) {
+                            // ignore dropped frames
+                        }
+
+                        if (this.scanning) {
+                            requestAnimationFrame(() => this.scanLoop());
+                        }
+                    },
+                }));
+            }
+        }
+
+        if (window.Alpine) {
+            initLocationQrScanner();
+        } else {
+            document.addEventListener('alpine:init', initLocationQrScanner);
+        }
+    </script>
 </x-filament-panels::page>

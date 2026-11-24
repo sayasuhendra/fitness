@@ -21,13 +21,13 @@ class FacilityResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::Sparkles;
 
-    protected static ?string $navigationLabel = 'Facilities';
+    protected static ?string $navigationLabel = 'Fasilitas Gym';
 
-    protected static ?string $modelLabel = 'Facility';
+    protected static ?string $modelLabel = 'Fasilitas Gym';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Content';
+    protected static string|UnitEnum|null $navigationGroup = 'Pengaturan & Sistem';
 
-    protected static ?int $navigationSort = 30;
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {

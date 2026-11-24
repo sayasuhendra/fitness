@@ -21,13 +21,13 @@ class AttendanceResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::QrCode;
 
-    protected static ?string $navigationLabel = 'Check-In';
+    protected static ?string $navigationLabel = 'Presensi & Check-In';
 
     protected static ?string $modelLabel = 'Check-In';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Classes';
+    protected static string|UnitEnum|null $navigationGroup = 'Operasional Lokasi';
 
-    protected static ?int $navigationSort = 30;
+    protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
     {

@@ -27,9 +27,9 @@ class PersonalTrainerResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Personal Trainer';
 
-    protected static string|UnitEnum|null $navigationGroup = 'People';
+    protected static string|UnitEnum|null $navigationGroup = 'Personal Trainer';
 
-    protected static ?int $navigationSort = 21;
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {

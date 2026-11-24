@@ -31,6 +31,16 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Amber,
             ])
             ->sidebarFullyCollapsibleOnDesktop()
+            ->navigationGroups([
+                'Operasional Lokasi',
+                'Membership & Paket',
+                'Kelas Fitness',
+                'Personal Trainer',
+                'Toko & Produk',
+                'Member & Notifikasi',
+                'Keuangan & Pembayaran',
+                'Pengaturan & Sistem',
+            ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
@@ -52,8 +62,8 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->plugins([
                 FilamentShieldPlugin::make()
-                    ->navigationGroup('Access Control')
-                    ->navigationLabel('Roles')
+                    ->navigationGroup('Pengaturan & Sistem')
+                    ->navigationLabel('Peran & Hak Akses')
                     ->modelLabel('Role')
                     ->pluralModelLabel('Roles'),
             ])

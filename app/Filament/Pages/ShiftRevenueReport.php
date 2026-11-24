@@ -20,7 +20,7 @@ class ShiftRevenueReport extends Page
 
     protected static ?string $navigationLabel = 'Laporan Shift';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Laporan';
+    protected static string|UnitEnum|null $navigationGroup = 'Keuangan & Pembayaran';
 
     protected static ?int $navigationSort = 1;
 

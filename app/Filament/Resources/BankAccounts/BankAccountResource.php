@@ -25,9 +25,9 @@ class BankAccountResource extends Resource
 
     protected static ?string $modelLabel = 'Rekening Pembayaran';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Pembayaran';
+    protected static string|UnitEnum|null $navigationGroup = 'Keuangan & Pembayaran';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 3;
 
     public static function form(Schema $schema): Schema
     {

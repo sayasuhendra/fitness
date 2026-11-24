@@ -22,13 +22,13 @@ class OrderResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::Banknotes;
 
-    protected static ?string $navigationLabel = 'Manajemen Pesanan';
+    protected static ?string $navigationLabel = 'Pesanan Produk';
 
     protected static ?string $modelLabel = 'Pesanan';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Toko';
+    protected static string|UnitEnum|null $navigationGroup = 'Toko & Produk';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {

@@ -21,13 +21,13 @@ class MembershipPurchaseResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::CreditCard;
 
-    protected static ?string $navigationLabel = 'Membership Transactions';
+    protected static ?string $navigationLabel = 'Transaksi Membership';
 
-    protected static ?string $modelLabel = 'Membership Transaction';
+    protected static ?string $modelLabel = 'Transaksi Membership';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Commerce';
+    protected static string|UnitEnum|null $navigationGroup = 'Membership & Paket';
 
-    protected static ?int $navigationSort = 20;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {

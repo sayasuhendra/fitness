@@ -20,10 +20,13 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 use UnitEnum;
 
 class LocationOperations extends Page
@@ -32,7 +35,7 @@ class LocationOperations extends Page
 
     protected static ?string $navigationLabel = 'Operasional Lokasi';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Admin Lokasi';
+    protected static string|UnitEnum|null $navigationGroup = 'Operasional Lokasi';
 
     protected static ?int $navigationSort = 1;
 
@@ -76,6 +79,119 @@ class LocationOperations extends Page
     public int $checkInSessionUnits = 1;
 
     public string $checkInLocation = 'Akhwat Gym Studio';
+
+    /**
+     * @var array<string, string|int|null>|null
+     */
+    public ?array $lastCheckIn = null;
+
+    public string $qrInput = '';
+
+    public function submitScan(string $qrPayload): void
+    {
+        $qrPayload = trim($qrPayload);
+
+        if ($qrPayload === '') {
+            Notification::make()
+                ->title('QR belum terbaca')
+                ->body('Arahkan kamera ke QR member atau tempel payload/kode member secara manual.')
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        try {
+            $member = null;
+            $sessionsCount = 1;
+
+            // 1. Coba dekripsi payload dinamis dari aplikasi mobile
+            try {
+                $payload = json_decode(Crypt::decryptString($qrPayload), true, 512, JSON_THROW_ON_ERROR);
+                $expiresAt = Carbon::parse($payload['expires_at'] ?? null);
+
+                if ($expiresAt->isPast()) {
+                    throw ValidationException::withMessages([
+                        'qr_payload' => 'QR member sudah kedaluwarsa. Minta member membuka ulang halaman QR di aplikasi.',
+                    ]);
+                }
+
+                $member = Member::query()
+                    ->with('user')
+                    ->find((int) ($payload['member_id'] ?? 0));
+
+                $sessionsCount = (int) ($payload['sessions_count'] ?? 1);
+                $sessionsCount = in_array($sessionsCount, [1, 2], true) ? $sessionsCount : 1;
+            } catch (ValidationException $ve) {
+                throw $ve;
+            } catch (Throwable) {
+                // 2. Fallback: Cari berdasarkan Kode Member, email, no HP, atau ID
+                $search = trim($qrPayload);
+                $cleanSearch = str_replace([' ', '-'], '', $search);
+
+                $member = Member::query()
+                    ->with('user')
+                    ->where('member_code', $search)
+                    ->orWhere('member_code', $cleanSearch)
+                    ->orWhere('member_code', 'F - ' . str_pad(ltrim($search, 'Ff -0'), 3, '0', STR_PAD_LEFT))
+                    ->orWhereHas('user', fn ($q) => $q->where('email', $search)->orWhere('phone', $search))
+                    ->first();
+
+                if (!$member && is_numeric($search)) {
+                    $member = Member::query()->with('user')->find((int) $search);
+                }
+
+                if (!$member) {
+                    throw ValidationException::withMessages([
+                        'qr_payload' => 'Data member tidak ditemukan dari QR atau kode yang dimasukkan.',
+                    ]);
+                }
+            }
+
+            if (! $member instanceof Member) {
+                throw ValidationException::withMessages([
+                    'qr_payload' => 'Member untuk check-in tidak ditemukan.',
+                ]);
+            }
+
+            $attendance = app(CheckInMemberAction::class)->execute(
+                member: $member,
+                attendanceType: 'gym_visit',
+                location: $this->checkInLocation,
+                admin: auth()->user(),
+                sessionUnits: $sessionsCount,
+            );
+
+            $this->lastCheckIn = [
+                'id' => $attendance->id,
+                'member' => $member->user?->name ?? "Member #{$member->id}",
+                'member_code' => $member->member_code,
+                'sessions_count' => $sessionsCount,
+                'time' => $attendance->check_in_time->timezone(config('app.timezone'))->format('d M Y H:i'),
+                'location' => $attendance->location,
+            ];
+
+            $this->qrInput = '';
+
+            Notification::make()
+                ->title('Check-in Berhasil!')
+                ->body(($this->lastCheckIn['member'] ?? 'Member') . " tercatat hadir ({$sessionsCount} sesi).")
+                ->success()
+                ->send();
+        } catch (ValidationException $exception) {
+            Notification::make()
+                ->title('Check-in Ditolak')
+                ->body(collect($exception->errors())->flatten()->first() ?? 'Data check-in tidak valid.')
+                ->danger()
+                ->send();
+        } catch (Throwable $e) {
+            Notification::make()
+                ->title('Check-in Gagal')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
 
     public function getTitle(): string|Htmlable
     {

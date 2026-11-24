@@ -21,13 +21,13 @@ class MembershipPackageResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::Identification;
 
-    protected static ?string $navigationLabel = 'Membership Plans';
+    protected static ?string $navigationLabel = 'Paket Membership';
 
-    protected static ?string $modelLabel = 'Membership Plan';
+    protected static ?string $modelLabel = 'Paket Membership';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Commerce';
+    protected static string|UnitEnum|null $navigationGroup = 'Membership & Paket';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {

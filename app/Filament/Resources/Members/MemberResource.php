@@ -21,13 +21,13 @@ class MemberResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::Identification;
 
-    protected static ?string $navigationLabel = 'Members';
+    protected static ?string $navigationLabel = 'Data Member';
 
     protected static ?string $modelLabel = 'Member';
 
-    protected static string|UnitEnum|null $navigationGroup = 'People';
+    protected static string|UnitEnum|null $navigationGroup = 'Member & Notifikasi';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {

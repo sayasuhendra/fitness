@@ -20,9 +20,9 @@ class SendMemberNotification extends Page
 
     protected static ?string $navigationLabel = 'Kirim Notifikasi';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Notifications';
+    protected static string|UnitEnum|null $navigationGroup = 'Member & Notifikasi';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 2;
 
     protected string $view = 'filament.pages.send-member-notification';
 

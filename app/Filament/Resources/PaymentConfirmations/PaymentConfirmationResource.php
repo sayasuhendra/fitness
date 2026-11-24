@@ -26,9 +26,9 @@ class PaymentConfirmationResource extends Resource
 
     protected static ?string $modelLabel = 'Konfirmasi Pembayaran';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Pembayaran';
+    protected static string|UnitEnum|null $navigationGroup = 'Keuangan & Pembayaran';
 
-    protected static ?int $navigationSort = 30;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {

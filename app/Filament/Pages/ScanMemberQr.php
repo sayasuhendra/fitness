@@ -24,9 +24,9 @@ class ScanMemberQr extends Page
 
     protected static ?string $navigationLabel = 'Scan QR Member';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Classes';
+    protected static string|UnitEnum|null $navigationGroup = 'Operasional Lokasi';
 
-    protected static ?int $navigationSort = 29;
+    protected static ?int $navigationSort = 2;
 
     protected string $view = 'filament.pages.scan-member-qr';
 

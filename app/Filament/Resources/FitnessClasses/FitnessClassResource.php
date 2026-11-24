@@ -21,13 +21,13 @@ class FitnessClassResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::CalendarDays;
 
-    protected static ?string $navigationLabel = 'Class Schedules';
+    protected static ?string $navigationLabel = 'Jadwal & Kelas';
 
-    protected static ?string $modelLabel = 'Class Schedule';
+    protected static ?string $modelLabel = 'Jadwal & Kelas';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Classes';
+    protected static string|UnitEnum|null $navigationGroup = 'Kelas Fitness';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {

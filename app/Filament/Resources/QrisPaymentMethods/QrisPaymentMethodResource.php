@@ -21,13 +21,13 @@ class QrisPaymentMethodResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::QrCode;
 
-    protected static ?string $navigationLabel = 'QRIS';
+    protected static ?string $navigationLabel = 'Metode QRIS';
 
-    protected static ?string $modelLabel = 'QRIS';
+    protected static ?string $modelLabel = 'Metode QRIS';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Pembayaran';
+    protected static string|UnitEnum|null $navigationGroup = 'Keuangan & Pembayaran';
 
-    protected static ?int $navigationSort = 20;
+    protected static ?int $navigationSort = 4;
 
     public static function form(Schema $schema): Schema
     {

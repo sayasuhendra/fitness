@@ -25,9 +25,9 @@ class PersonalTrainerSessionResource extends Resource
 
     protected static ?string $modelLabel = 'Sesi Personal Trainer';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Classes';
+    protected static string|UnitEnum|null $navigationGroup = 'Personal Trainer';
 
-    protected static ?int $navigationSort = 20;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {
