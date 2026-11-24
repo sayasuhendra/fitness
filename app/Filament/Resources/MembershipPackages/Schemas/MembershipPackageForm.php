@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\MembershipPackages\Schemas;
 
+use App\Support\ClassType;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -62,22 +63,7 @@ class MembershipPackageForm
                         CheckboxList::make('allowed_class_types')
                             ->label('Included Class Types')
                             ->helperText('Leave empty when this plan can be used for every class type.')
-                            ->options([
-                                'gym' => 'Gym',
-                                'personal_trainer' => 'Personal Trainer',
-                                'zumba' => 'Zumba',
-                                'zumba_gold' => 'Zumba Gold',
-                                'aerobic' => 'Aerobic',
-                                'aeromix' => 'Aeromix',
-                                'fitdance' => 'Fitdance',
-                                'bomiya' => 'Bomiya',
-                                'circuit_training' => 'Circuit Training',
-                                'salsation' => 'Salsation',
-                                'yoga' => 'Yoga',
-                                'prenatal_yoga' => 'Yoga Prenatal',
-                                'poundfit' => 'Poundfit',
-                                'body_fat' => 'Body Fat',
-                            ])
+                            ->options(ClassType::options())
                             ->columns(3)
                             ->columnSpanFull(),
                         TextInput::make('duration_days')

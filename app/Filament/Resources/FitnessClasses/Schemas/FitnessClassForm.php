@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\FitnessClasses\Schemas;
 
+use App\Support\ClassType;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -27,24 +28,7 @@ class FitnessClassForm
                             ->maxLength(120),
                         Select::make('class_type')
                             ->label('Class Type')
-                            ->options([
-                                'zumba' => 'Zumba',
-                                'zumba_gold' => 'Zumba Gold',
-                                'yoga' => 'Yoga',
-                                'prenatal_yoga' => 'Yoga Prenatal',
-                                'circuit_training' => 'Circuit Training',
-                                'salsation' => 'Salsation',
-                                'pilates' => 'Pilates',
-                                'strength' => 'Strength',
-                                'aerobic' => 'Aerobic',
-                                'aeromix' => 'Aeromix',
-                                'fitdance' => 'Fitdance',
-                                'bomiya' => 'Bomiya',
-                                'poundfit' => 'Poundfit',
-                                'gym' => 'Gym',
-                                'body_fat' => 'Body Fat',
-                                'general' => 'General',
-                            ])
+                            ->options(ClassType::options())
                             ->default('general')
                             ->required(),
                         Select::make('trainer_id')

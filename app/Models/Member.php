@@ -61,6 +61,36 @@ class Member extends Model
             ->first();
     }
 
+    public function activeMembershipForClass(string $classType): ?MembershipPurchase
+    {
+        return $this->activeMemberships()
+            ->first(function (MembershipPurchase $purchase) use ($classType): bool {
+                return $purchase->hasRemainingVisits() &&
+                    ($purchase->package?->allowsClassType($classType) ?? false);
+            });
+    }
+
+    public function activeMembershipForPersonalTrainer(): ?MembershipPurchase
+    {
+        return $this->activeMemberships()
+            ->first(function (MembershipPurchase $purchase): bool {
+                return $purchase->includes_personal_trainer && $purchase->hasRemainingVisits();
+            });
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, MembershipPurchase>
+     */
+    public function activeMemberships(): \Illuminate\Database\Eloquent\Collection
+    {
+        return $this->membershipPurchases()
+            ->with('package')
+            ->where('status', 'active')
+            ->where('expires_at', '>=', now())
+            ->latest('expires_at')
+            ->get();
+    }
+
     public static function nextMemberCode(): string
     {
         $maxNumber = (int) static::query()->max('id');

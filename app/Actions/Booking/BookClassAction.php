@@ -43,7 +43,7 @@ final class BookClassAction
                 throw ValidationException::withMessages(['class_session_id' => 'This session does not belong to the selected class.']);
             }
 
-            $membership = $member->activeMembership();
+            $membership = $member->activeMembershipForClass($class->class_type) ?? $member->activeMembership();
 
             if ($accessType === 'membership') {
                 if ($membership === null) {
@@ -55,7 +55,7 @@ final class BookClassAction
                 }
 
                 if (! $membership->package->allowsClassType($class->class_type)) {
-                    throw ValidationException::withMessages(['membership' => 'Your membership package does not include this class type.']);
+                    throw ValidationException::withMessages(['membership' => 'Paket membership Anda ('.$membership->package->name.') tidak mencakup kelas ini.']);
                 }
             }
 

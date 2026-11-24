@@ -29,6 +29,20 @@ class MembershipPurchaseForm
                             ->relationship('package', 'name')
                             ->searchable()
                             ->preload()
+                            ->live()
+                            ->afterStateUpdated(function ($state, callable $set, callable $get): void {
+                                if ($state) {
+                                    $package = \App\Models\MembershipPackage::find($state);
+                                    if ($package) {
+                                        $set('amount', $package->price);
+                                        $set('includes_personal_trainer', $package->includes_personal_trainer);
+                                        $set('visits_allowed', $package->has_visit_limit ? $package->visit_limit : null);
+                                        $startsAt = $get('starts_at') ? \Illuminate\Support\Carbon::parse($get('starts_at')) : now();
+                                        $set('starts_at', $startsAt->toDateTimeString());
+                                        $set('expires_at', $startsAt->copy()->addDays($package->duration_days)->toDateTimeString());
+                                    }
+                                }
+                            })
                             ->required(),
                         Select::make('status')
                             ->label('Status')
@@ -39,6 +53,22 @@ class MembershipPurchaseForm
                                 'cancelled' => 'Dibatalkan',
                             ])
                             ->default('pending_payment')
+                            ->live()
+                            ->afterStateUpdated(function ($state, callable $set, callable $get): void {
+                                if ($state === 'active') {
+                                    if (! $get('starts_at')) {
+                                        $set('starts_at', now()->toDateTimeString());
+                                    }
+                                    $packageId = $get('membership_package_id');
+                                    if ($packageId && ! $get('expires_at')) {
+                                        $package = \App\Models\MembershipPackage::find($packageId);
+                                        if ($package) {
+                                            $startsAt = \Illuminate\Support\Carbon::parse($get('starts_at') ?? now());
+                                            $set('expires_at', $startsAt->copy()->addDays($package->duration_days)->toDateTimeString());
+                                        }
+                                    }
+                                }
+                            })
                             ->required(),
                     ])
                     ->columns(3),

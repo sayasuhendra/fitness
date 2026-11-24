@@ -43,6 +43,34 @@ class MembershipPurchase extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::saving(function (MembershipPurchase $purchase): void {
+            if ($purchase->status === 'active') {
+                if ($purchase->starts_at === null) {
+                    $purchase->starts_at = now();
+                }
+
+                $package = $purchase->package ?? MembershipPackage::find($purchase->membership_package_id);
+
+                if ($package !== null) {
+                    if ($purchase->expires_at === null) {
+                        $purchase->expires_at = $purchase->starts_at->copy()->addDays($package->duration_days);
+                    }
+                    if ($purchase->visits_allowed === null && $package->has_visit_limit) {
+                        $purchase->visits_allowed = $package->visit_limit;
+                    }
+                    if (($purchase->amount === null || (float) $purchase->amount <= 0) && (float) $package->price > 0) {
+                        $purchase->amount = $package->price;
+                    }
+                    if (! $purchase->includes_personal_trainer && $package->includes_personal_trainer) {
+                        $purchase->includes_personal_trainer = true;
+                    }
+                }
+            }
+        });
+    }
+
     public function member(): BelongsTo
     {
         return $this->belongsTo(Member::class);

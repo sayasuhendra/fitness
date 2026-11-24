@@ -119,7 +119,9 @@ class CheckInMemberAction
 
     private function validMembershipForCheckIn(Member $member, ?ClassBooking $booking = null): MembershipPurchase
     {
-        $membership = $member->activeMembership();
+        $membership = $booking !== null
+            ? ($member->activeMembershipForClass($booking->fitnessClass->class_type) ?? $member->activeMembership())
+            : $member->activeMembership();
 
         if ($membership === null) {
             throw ValidationException::withMessages(['membership' => 'Member belum memiliki membership aktif.']);
@@ -134,7 +136,7 @@ class CheckInMemberAction
 
     private function validPersonalTrainerMembership(Member $member): MembershipPurchase
     {
-        $membership = $member->activeMembership();
+        $membership = $member->activeMembershipForPersonalTrainer() ?? $member->activeMembership();
 
         if ($membership === null || ! $membership->includes_personal_trainer) {
             throw ValidationException::withMessages(['membership' => 'Member belum memiliki paket personal trainer aktif.']);

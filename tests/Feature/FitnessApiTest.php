@@ -586,4 +586,72 @@ class FitnessApiTest extends TestCase
             ->assertStatus(401)
             ->assertJson(['message' => 'Unauthenticated.']);
     }
+
+    public function test_auth_me_returns_membership_package_details(): void
+    {
+        $member = $this->actingMember();
+        $package = MembershipPackage::factory()->create([
+            'name' => 'Member All Class 4x',
+            'allowed_class_types' => ['zumba', 'circuit_training'],
+        ]);
+        MembershipPurchase::factory()->create([
+            'member_id' => $member->id,
+            'membership_package_id' => $package->id,
+            'status' => 'active',
+            'starts_at' => now(),
+            'expires_at' => now()->addMonth(),
+        ]);
+
+        $response = $this->getJson('/api/v1/auth/me')
+            ->assertOk()
+            ->assertJsonPath('data.membership_status', 'active')
+            ->assertJsonPath('data.membership_package_name', 'Member All Class 4x');
+
+        $allowed = $response->json('data.membership_allowed_class_types');
+        $this->assertContains('zumba', $allowed);
+        $this->assertContains('circuit_training', $allowed);
+    }
+
+    public function test_booking_uses_matching_membership_when_member_has_multiple_packages(): void
+    {
+        $member = $this->actingMember();
+        $gymPackage = MembershipPackage::factory()->create([
+            'name' => 'Gym Member',
+            'allowed_class_types' => ['gym'],
+        ]);
+        $zumbaPackage = MembershipPackage::factory()->create([
+            'name' => 'Zumba Member',
+            'allowed_class_types' => ['zumba'],
+        ]);
+
+        // Member has gym package expiring later, and zumba package expiring earlier
+        MembershipPurchase::factory()->create([
+            'member_id' => $member->id,
+            'membership_package_id' => $gymPackage->id,
+            'status' => 'active',
+            'starts_at' => now(),
+            'expires_at' => now()->addMonths(2),
+        ]);
+        MembershipPurchase::factory()->create([
+            'member_id' => $member->id,
+            'membership_package_id' => $zumbaPackage->id,
+            'status' => 'active',
+            'starts_at' => now(),
+            'expires_at' => now()->addMonth(),
+        ]);
+
+        $zumbaClass = FitnessClass::factory()->create([
+            'class_type' => 'zumba',
+            'is_recurring' => true,
+            'recurring_days' => [strtolower(now()->englishDayOfWeek)],
+            'class_date' => now()->startOfWeek(),
+        ]);
+
+        $this->postJson('/api/v1/classes/book', [
+            'class_id' => $zumbaClass->id,
+            'booked_for_date' => now()->toDateString(),
+            'access_type' => 'membership',
+        ])->assertCreated()
+            ->assertJsonPath('data.status', 'confirmed');
+    }
 }

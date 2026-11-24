@@ -62,6 +62,15 @@ class MembershipPackage extends Model
             return true;
         }
 
-        return in_array($classType, $this->allowed_class_types, true);
+        if (in_array($classType, $this->allowed_class_types, true)) {
+            return true;
+        }
+
+        // If class is general, allow it if package includes general class types (not just gym or pt)
+        if ($classType === 'general' && count(array_diff($this->allowed_class_types, ['gym', 'personal_trainer', 'body_fat'])) > 0) {
+            return true;
+        }
+
+        return false;
     }
 }
