@@ -4,6 +4,8 @@ namespace App\Filament\Resources\MembershipPackages\Tables;
 
 use App\Models\MembershipPackage;
 use App\Support\ClassType;
+use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -107,6 +109,28 @@ class MembershipPackagesTable
             ->recordActions([
                 EditAction::make()
                     ->label('Ubah'),
+                Action::make('toggleActive')
+                    ->label(fn (MembershipPackage $record): string => $record->is_active ? 'Nonaktifkan' : 'Aktifkan')
+                    ->icon(fn (MembershipPackage $record): string => $record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
+                    ->color(fn (MembershipPackage $record): string => $record->is_active ? 'warning' : 'success')
+                    ->requiresConfirmation()
+                    ->modalHeading(fn (MembershipPackage $record): string => $record->is_active ? "Nonaktifkan Paket: {$record->name}" : "Aktifkan Paket: {$record->name}")
+                    ->modalDescription(fn (MembershipPackage $record): string => $record->is_active
+                        ? 'Apakah Anda yakin ingin menonaktifkan paket ini? Paket yang dinonaktifkan tidak akan tersedia untuk pembelian baru.'
+                        : 'Apakah Anda yakin ingin mengaktifkan kembali paket ini? Paket akan kembali tersedia untuk dibeli oleh member.'
+                    )
+                    ->modalSubmitActionLabel(fn (MembershipPackage $record): string => $record->is_active ? 'Ya, Nonaktifkan' : 'Ya, Aktifkan')
+                    ->modalCancelActionLabel('Batal')
+                    ->action(function (MembershipPackage $record): void {
+                        $newStatus = ! $record->is_active;
+                        $record->update(['is_active' => $newStatus]);
+
+                        Notification::make()
+                            ->title($newStatus ? 'Paket Berhasil Diaktifkan' : 'Paket Berhasil Dinonaktifkan')
+                            ->body("Status paket \"{$record->name}\" berhasil diubah menjadi ".($newStatus ? 'Aktif.' : 'Tidak Aktif.'))
+                            ->color($newStatus ? 'success' : 'warning')
+                            ->send();
+                    }),
                 DeleteAction::make()
                     ->label('Hapus')
                     ->modalHeading(fn (MembershipPackage $record): string => "Hapus Paket: {$record->name}")
@@ -131,6 +155,44 @@ class MembershipPackagesTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
+                    BulkAction::make('activate')
+                        ->label('Aktifkan Paket Terpilih')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->modalHeading('Aktifkan Paket Membership Terpilih')
+                        ->modalDescription('Apakah Anda yakin ingin mengaktifkan semua paket membership yang dipilih? Paket yang aktif akan dapat dibeli dan dipilih kembali oleh member.')
+                        ->modalSubmitActionLabel('Ya, Aktifkan')
+                        ->modalCancelActionLabel('Batal')
+                        ->action(function (Collection $records): void {
+                            $records->each(fn (MembershipPackage $record) => $record->update(['is_active' => true]));
+
+                            Notification::make()
+                                ->success()
+                                ->title('Paket Berhasil Diaktifkan')
+                                ->body("Sebanyak {$records->count()} paket membership berhasil diaktifkan.")
+                                ->send();
+                        })
+                        ->deselectRecordsAfterCompletion(),
+                    BulkAction::make('deactivate')
+                        ->label('Nonaktifkan Paket Terpilih')
+                        ->icon('heroicon-o-x-circle')
+                        ->color('warning')
+                        ->requiresConfirmation()
+                        ->modalHeading('Nonaktifkan Paket Membership Terpilih')
+                        ->modalDescription('Apakah Anda yakin ingin menonaktifkan semua paket membership yang dipilih? Paket yang dinonaktifkan tidak akan muncul lagi untuk pembelian baru, namun riwayat member yang sudah terdaftar tetap aman.')
+                        ->modalSubmitActionLabel('Ya, Nonaktifkan')
+                        ->modalCancelActionLabel('Batal')
+                        ->action(function (Collection $records): void {
+                            $records->each(fn (MembershipPackage $record) => $record->update(['is_active' => false]));
+
+                            Notification::make()
+                                ->warning()
+                                ->title('Paket Berhasil Dinonaktifkan')
+                                ->body("Sebanyak {$records->count()} paket membership berhasil dinonaktifkan.")
+                                ->send();
+                        })
+                        ->deselectRecordsAfterCompletion(),
                     DeleteBulkAction::make()
                         ->label('Hapus Paket Terpilih')
                         ->modalHeading('Hapus Paket Membership Terpilih')

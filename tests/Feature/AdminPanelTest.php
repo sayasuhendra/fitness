@@ -1060,6 +1060,45 @@ class AdminPanelTest extends TestCase
         $this->assertDatabaseMissing('membership_packages', ['id' => $packageId]);
     }
 
+    public function test_bulk_activate_and_deactivate_membership_packages(): void
+    {
+        $admin = $this->superAdmin();
+        $this->actingAs($admin);
+
+        $pkg1 = MembershipPackage::factory()->create(['is_active' => false]);
+        $pkg2 = MembershipPackage::factory()->create(['is_active' => false]);
+
+        Livewire::test(ListMembershipPackages::class)
+            ->callTableBulkAction('activate', [$pkg1, $pkg2]);
+
+        $this->assertTrue($pkg1->fresh()->is_active);
+        $this->assertTrue($pkg2->fresh()->is_active);
+
+        Livewire::test(ListMembershipPackages::class)
+            ->callTableBulkAction('deactivate', [$pkg1, $pkg2]);
+
+        $this->assertFalse($pkg1->fresh()->is_active);
+        $this->assertFalse($pkg2->fresh()->is_active);
+    }
+
+    public function test_toggle_active_record_action_membership_package(): void
+    {
+        $admin = $this->superAdmin();
+        $this->actingAs($admin);
+
+        $pkg = MembershipPackage::factory()->create(['is_active' => false]);
+
+        Livewire::test(ListMembershipPackages::class)
+            ->callTableAction('toggleActive', $pkg);
+
+        $this->assertTrue($pkg->fresh()->is_active);
+
+        Livewire::test(ListMembershipPackages::class)
+            ->callTableAction('toggleActive', $pkg);
+
+        $this->assertFalse($pkg->fresh()->is_active);
+    }
+
     private function superAdmin(): User
     {
         $admin = User::factory()->create();
