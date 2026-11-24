@@ -34,32 +34,32 @@ class TrainerPolicy
 
     public function delete(AuthUser $authUser, Trainer $trainer): bool
     {
-        return method_exists($authUser, 'hasAnyRole') && $authUser->hasAnyRole(['Owner', 'Super admin']);
+        return method_exists($authUser, 'hasAnyRole') && $authUser->hasAnyRole(['Owner', 'Super admin', 'super_admin']);
     }
 
     public function deleteAny(AuthUser $authUser): bool
     {
-        return method_exists($authUser, 'hasAnyRole') && $authUser->hasAnyRole(['Owner', 'Super admin']);
+        return method_exists($authUser, 'hasAnyRole') && $authUser->hasAnyRole(['Owner', 'Super admin', 'super_admin']);
     }
 
     public function restore(AuthUser $authUser, Trainer $trainer): bool
     {
-        return method_exists($authUser, 'hasAnyRole') && $authUser->hasAnyRole(['Owner', 'Super admin']);
+        return method_exists($authUser, 'hasAnyRole') && $authUser->hasAnyRole(['Owner', 'Super admin', 'super_admin']);
     }
 
     public function forceDelete(AuthUser $authUser, Trainer $trainer): bool
     {
-        return method_exists($authUser, 'hasAnyRole') && $authUser->hasAnyRole(['Owner', 'Super admin']);
+        return method_exists($authUser, 'hasAnyRole') && $authUser->hasAnyRole(['Owner', 'Super admin', 'super_admin']);
     }
 
     public function forceDeleteAny(AuthUser $authUser): bool
     {
-        return method_exists($authUser, 'hasAnyRole') && $authUser->hasAnyRole(['Owner', 'Super admin']);
+        return method_exists($authUser, 'hasAnyRole') && $authUser->hasAnyRole(['Owner', 'Super admin', 'super_admin']);
     }
 
     public function restoreAny(AuthUser $authUser): bool
     {
-        return method_exists($authUser, 'hasAnyRole') && $authUser->hasAnyRole(['Owner', 'Super admin']);
+        return method_exists($authUser, 'hasAnyRole') && $authUser->hasAnyRole(['Owner', 'Super admin', 'super_admin']);
     }
 
     public function replicate(AuthUser $authUser, Trainer $trainer): bool

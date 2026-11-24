@@ -14,7 +14,7 @@ class PersonalTrainerPolicy
 
     public function viewAny(AuthUser $authUser): bool
     {
-        return $authUser->hasAnyRole(['Owner', 'Super admin', 'Admin di lokasi']);
+        return $authUser->hasAnyRole(['Owner', 'Super admin', 'super_admin', 'Admin di lokasi']);
     }
 
     public function view(AuthUser $authUser, PersonalTrainer $personalTrainer): bool
@@ -24,21 +24,21 @@ class PersonalTrainerPolicy
 
     public function create(AuthUser $authUser): bool
     {
-        return $authUser->hasAnyRole(['Owner', 'Super admin']);
+        return $authUser->hasAnyRole(['Owner', 'Super admin', 'super_admin']);
     }
 
     public function update(AuthUser $authUser, PersonalTrainer $personalTrainer): bool
     {
-        return $authUser->hasAnyRole(['Owner', 'Super admin']);
+        return $authUser->hasAnyRole(['Owner', 'Super admin', 'super_admin']);
     }
 
     public function delete(AuthUser $authUser, PersonalTrainer $personalTrainer): bool
     {
-        return $authUser->hasAnyRole(['Owner', 'Super admin']);
+        return $authUser->hasAnyRole(['Owner', 'Super admin', 'super_admin']);
     }
 
     public function deleteAny(AuthUser $authUser): bool
     {
-        return $authUser->hasAnyRole(['Owner', 'Super admin']);
+        return $authUser->hasAnyRole(['Owner', 'Super admin', 'super_admin']);
     }
 }

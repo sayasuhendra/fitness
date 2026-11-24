@@ -200,7 +200,19 @@ class LocationOperations extends Page
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->hasAnyRole(['Owner', 'Super admin', 'Admin di lokasi']) ?? false;
+        $user = auth()->user();
+
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->hasAnyRole(['Owner', 'Super admin', 'super_admin', 'Admin di lokasi'])) {
+            return true;
+        }
+
+        return $user->can('View:LocationOperations')
+            || $user->can('view_location_operations')
+            || $user->can('view', static::class);
     }
 
     /**

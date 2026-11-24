@@ -44,7 +44,19 @@ class ScanMemberQr extends Page
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->can('create', Attendance::class) ?? false;
+        $user = auth()->user();
+
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->hasAnyRole(['Owner', 'Super admin', 'super_admin', 'Admin di lokasi'])) {
+            return true;
+        }
+
+        return $user->can('View:ScanMemberQr')
+            || $user->can('view_scan_member_qr')
+            || $user->can('create', Attendance::class);
     }
 
     public function submitScan(string $qrPayload): void

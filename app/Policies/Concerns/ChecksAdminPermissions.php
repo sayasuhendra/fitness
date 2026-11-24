@@ -10,7 +10,7 @@ trait ChecksAdminPermissions
 {
     private function allows(User $user, string $ability, string $model): bool
     {
-        if ($user->hasAnyRole(['Owner', 'Super admin'])) {
+        if ($user->hasAnyRole(['Owner', 'Super admin', 'super_admin'])) {
             return true;
         }
 

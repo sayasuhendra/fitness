@@ -14,7 +14,7 @@ class AppSettingPolicy
 
     public function viewAny(AuthUser $authUser): bool
     {
-        return $authUser->hasAnyRole(['Owner', 'Super admin']);
+        return $authUser->hasAnyRole(['Owner', 'Super admin', 'super_admin']);
     }
 
     public function view(AuthUser $authUser, AppSetting $appSetting): bool

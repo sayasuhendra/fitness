@@ -74,7 +74,19 @@ class SendMemberNotification extends Page
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->can('viewAny', Member::class) ?? false;
+        $user = auth()->user();
+
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->hasAnyRole(['Owner', 'Super admin', 'super_admin'])) {
+            return true;
+        }
+
+        return $user->can('View:SendMemberNotification')
+            || $user->can('view_send_member_notification')
+            || $user->can('viewAny', Member::class);
     }
 
     /**
