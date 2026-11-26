@@ -576,6 +576,274 @@
         </x-filament::section>
         </div>
     </div>
+
+    <!-- Manajemen Pesanan Hari Ini (Belum Selesai) -->
+    <div class="location-operations-card--wide" wire:poll.15s>
+        <x-filament::section>
+            <x-slot name="heading">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                    <span class="flex items-center gap-2">
+                        <x-filament::icon icon="heroicon-m-clipboard-document-list" class="h-6 w-6 text-primary-600 dark:text-primary-400" />
+                        <span>Manajemen Pesanan Hari Ini (Belum Selesai)</span>
+                    </span>
+                    <span class="text-xs font-normal text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+                        <span class="inline-block h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Auto-update tiap 15 detik
+                    </span>
+                </div>
+            </x-slot>
+            <x-slot name="description">
+                Pantau dan proses pesanan produk hari ini dari aplikasi member maupun kasir lokasi yang membutuhkan pembayaran atau penyerahan barang.
+            </x-slot>
+
+            @php
+                $stats = $this->todayOrdersStats;
+                $todayOrders = $this->getTodayOrders();
+            @endphp
+
+            <!-- Filter Badges & Search Bar -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2 pb-4 border-b border-gray-200 dark:border-gray-800">
+                <!-- Filter Pills -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <button
+                        type="button"
+                        wire:click="setTodayOrdersFilter('incomplete')"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition {{ $todayOrdersFilter === 'incomplete' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700' }}"
+                    >
+                        <span>Belum Selesai</span>
+                        <span class="px-1.5 py-0.5 rounded-full text-[10px] {{ $todayOrdersFilter === 'incomplete' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300' }}">
+                            {{ $stats['total_incomplete'] }}
+                        </span>
+                    </button>
+
+                    <button
+                        type="button"
+                        wire:click="setTodayOrdersFilter('pending_payment')"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition {{ $todayOrdersFilter === 'pending_payment' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700' }}"
+                    >
+                        <span>Menunggu Pembayaran</span>
+                        <span class="px-1.5 py-0.5 rounded-full text-[10px] {{ $todayOrdersFilter === 'pending_payment' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-300' }}">
+                            {{ $stats['pending_payment'] }}
+                        </span>
+                    </button>
+
+                    <button
+                        type="button"
+                        wire:click="setTodayOrdersFilter('ready_to_deliver')"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition {{ $todayOrdersFilter === 'ready_to_deliver' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700' }}"
+                    >
+                        <span>Siap Diserahkan</span>
+                        <span class="px-1.5 py-0.5 rounded-full text-[10px] {{ $todayOrdersFilter === 'ready_to_deliver' ? 'bg-white/20 text-white' : 'bg-sky-100 text-sky-800 dark:bg-sky-900/60 dark:text-sky-300' }}">
+                            {{ $stats['ready_to_deliver'] }}
+                        </span>
+                    </button>
+
+                    <button
+                        type="button"
+                        wire:click="setTodayOrdersFilter('completed')"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition {{ $todayOrdersFilter === 'completed' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700' }}"
+                    >
+                        <span>Sudah Selesai</span>
+                        <span class="px-1.5 py-0.5 rounded-full text-[10px] {{ $todayOrdersFilter === 'completed' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300' }}">
+                            {{ $stats['completed'] }}
+                        </span>
+                    </button>
+
+                    <button
+                        type="button"
+                        wire:click="setTodayOrdersFilter('all_today')"
+                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition {{ $todayOrdersFilter === 'all_today' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700' }}"
+                    >
+                        Semua Hari Ini
+                    </button>
+                </div>
+
+                <!-- Search Input -->
+                <div class="w-full md:w-64">
+                    <input
+                        wire:model.live.debounce.300ms="todayOrdersSearch"
+                        type="text"
+                        placeholder="Cari member / ID..."
+                        class="block w-full text-xs rounded-lg border border-gray-300 px-3 py-1.5 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                    />
+                </div>
+            </div>
+
+            <!-- Orders List -->
+            @if ($todayOrders->isEmpty())
+                <div class="py-12 text-center text-gray-500 dark:text-gray-400">
+                    <x-filament::icon icon="heroicon-o-check-badge" class="mx-auto h-12 w-12 text-emerald-500 mb-3" />
+                    <p class="text-base font-semibold text-gray-800 dark:text-gray-200">
+                        @if ($todayOrdersFilter === 'incomplete')
+                            Tidak ada pesanan belum selesai hari ini.
+                        @else
+                            Tidak ada pesanan yang sesuai filter saat ini.
+                        @endif
+                    </p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Pesanan baru dari aplikasi member atau kasir lokasi akan muncul di sini secara otomatis.
+                    </p>
+                </div>
+            @else
+                <div class="overflow-x-auto mt-4 rounded-xl border border-gray-200 dark:border-gray-800">
+                    <table class="w-full text-left text-xs divide-y divide-gray-200 dark:divide-gray-800">
+                        <thead class="bg-gray-50 dark:bg-gray-900/50 text-gray-600 dark:text-gray-400 font-semibold uppercase tracking-wider">
+                            <tr>
+                                <th class="px-3 py-3">Pesanan</th>
+                                <th class="px-3 py-3">Member</th>
+                                <th class="px-3 py-3">Item Produk</th>
+                                <th class="px-3 py-3">Total & Metode</th>
+                                <th class="px-3 py-3">Status Bayar</th>
+                                <th class="px-3 py-3">Penyerahan</th>
+                                <th class="px-3 py-3 text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-800 bg-white dark:bg-gray-900">
+                            @foreach ($todayOrders as $order)
+                                <tr wire:key="today-order-{{ $order->id }}" class="hover:bg-gray-50/70 dark:hover:bg-gray-800/40 transition">
+                                    <td class="px-3 py-3 align-top whitespace-nowrap">
+                                        <div class="font-bold text-gray-900 dark:text-white">#{{ $order->id }}</div>
+                                        <div class="text-[11px] text-gray-500 dark:text-gray-400">{{ $order->created_at->format('H:i') }} WIB</div>
+                                        @if ($order->payment_reference)
+                                            <div class="text-[10px] text-gray-400 font-mono mt-0.5 truncate max-w-[120px]" title="{{ $order->payment_reference }}">
+                                                {{ $order->payment_reference }}
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="px-3 py-3 align-top">
+                                        <div class="font-semibold text-gray-900 dark:text-white">
+                                            {{ $order->member?->user?->name ?? 'Member #' . $order->member_id }}
+                                        </div>
+                                        <div class="text-[11px] text-gray-500 dark:text-gray-400">
+                                            {{ $order->member?->member_code ?? '-' }}
+                                        </div>
+                                    </td>
+                                    <td class="px-3 py-3 align-top">
+                                        <ul class="space-y-1">
+                                            @foreach ($order->items as $item)
+                                                <li class="text-gray-800 dark:text-gray-200">
+                                                    <span class="font-medium">{{ $item->product?->name ?? 'Produk #' . $item->product_id }}</span>
+                                                    <span class="text-gray-500 dark:text-gray-400">&times; {{ $item->quantity }}</span>
+                                                    <span class="text-[11px] text-gray-400">({{ number_format((float) $item->subtotal, 0, ',', '.') }})</span>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    </td>
+                                    <td class="px-3 py-3 align-top whitespace-nowrap">
+                                        <div class="font-bold text-gray-900 dark:text-white">
+                                            Rp {{ number_format((float) $order->total_price, 0, ',', '.') }}
+                                        </div>
+                                        <div class="mt-1">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 uppercase">
+                                                {{ match ($order->payment_method) {
+                                                    'qris' => 'QRIS',
+                                                    'bank_transfer' => 'Transfer Bank',
+                                                    'cash' => 'Tunai',
+                                                    'manual_transfer' => 'Transfer Manual',
+                                                    default => $order->payment_method,
+                                                } }}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td class="px-3 py-3 align-top whitespace-nowrap">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold {{ match ($order->status) {
+                                            'paid' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
+                                            'completed' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
+                                            'cancelled' => 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300',
+                                            default => 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
+                                        } }}">
+                                            {{ match ($order->status) {
+                                                'pending_payment' => 'Menunggu Bayar',
+                                                'paid' => 'Sudah Dibayar',
+                                                'completed' => 'Selesai',
+                                                'cancelled' => 'Dibatalkan',
+                                                default => $order->status,
+                                            } }}
+                                        </span>
+                                    </td>
+                                    <td class="px-3 py-3 align-top whitespace-nowrap">
+                                        @if ($order->delivered_at)
+                                            <div class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold text-[11px]">
+                                                <x-filament::icon icon="heroicon-m-check-circle" class="h-4 w-4" />
+                                                <span>Sudah ({{ $order->delivered_at->format('H:i') }})</span>
+                                            </div>
+                                            @if ($order->deliveredBy)
+                                                <div class="text-[10px] text-gray-400">oleh {{ $order->deliveredBy->name }}</div>
+                                            @endif
+                                        @else
+                                            <div class="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold text-[11px]">
+                                                <x-filament::icon icon="heroicon-m-clock" class="h-4 w-4" />
+                                                <span>Belum Diserahkan</span>
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="px-3 py-3 align-top text-right whitespace-nowrap">
+                                        <div class="flex items-center justify-end gap-1.5 flex-wrap">
+                                            @if ($order->status === 'pending_payment')
+                                                <x-filament::button
+                                                    wire:click="markOrderAsPaid({{ $order->id }})"
+                                                    wire:confirm="Tandai pesanan #{{ $order->id }} sudah dibayar?"
+                                                    size="xs"
+                                                    color="success"
+                                                    icon="heroicon-m-banknotes"
+                                                >
+                                                    Terima Bayar
+                                                </x-filament::button>
+                                            @endif
+
+                                            @if ($order->delivered_at === null && in_array($order->status, ['paid', 'completed'], true))
+                                                <x-filament::button
+                                                    wire:click="deliverOrder({{ $order->id }})"
+                                                    wire:confirm="Catat produk pesanan #{{ $order->id }} sudah diserahkan ke member?"
+                                                    size="xs"
+                                                    color="primary"
+                                                    icon="heroicon-m-hand-thumb-up"
+                                                >
+                                                    Serahkan
+                                                </x-filament::button>
+                                            @endif
+
+                                            @if ($order->status === 'paid')
+                                                <x-filament::button
+                                                    wire:click="completeOrder({{ $order->id }})"
+                                                    size="xs"
+                                                    color="gray"
+                                                    icon="heroicon-m-check"
+                                                >
+                                                    Selesai
+                                                </x-filament::button>
+                                            @endif
+
+                                            @if (in_array($order->status, ['pending_payment', 'paid'], true))
+                                                <x-filament::button
+                                                    wire:click="cancelOrder({{ $order->id }})"
+                                                    wire:confirm="Batalkan pesanan #{{ $order->id }}? Stok produk akan dikembalikan."
+                                                    size="xs"
+                                                    color="danger"
+                                                    icon="heroicon-m-x-circle"
+                                                >
+                                                    Batal
+                                                </x-filament::button>
+                                            @endif
+
+                                            <a
+                                                href="{{ \App\Filament\Resources\Orders\OrderResource::getUrl('view', ['record' => $order]) }}"
+                                                target="_blank"
+                                                class="inline-flex items-center justify-center p-1.5 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                                                title="Lihat Detail Pesanan"
+                                            >
+                                                <x-filament::icon icon="heroicon-m-arrow-top-right-on-square" class="h-4 w-4" />
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </x-filament::section>
+    </div>
     </div>
 
     <script>

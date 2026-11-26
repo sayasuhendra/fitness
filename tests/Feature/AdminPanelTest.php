@@ -12,6 +12,7 @@ use App\Filament\Resources\Members\Pages\CreateMember;
 use App\Filament\Resources\Members\Pages\EditMember;
 use App\Filament\Resources\MembershipPackages\Pages\EditMembershipPackage;
 use App\Filament\Resources\MembershipPackages\Pages\ListMembershipPackages;
+use App\Filament\Resources\Orders\Pages\ListOrders;
 use App\Filament\Resources\Trainers\Pages\CreateTrainer;
 use App\Filament\Widgets\BookingAttendanceChart;
 use App\Filament\Widgets\RevenueTrendChart;
@@ -1115,6 +1116,196 @@ class AdminPanelTest extends TestCase
 
         $this->assertFileExists(public_path('member/manifest.json'));
         $this->assertStringContainsString('/member/', file_get_contents(public_path('member/manifest.json')));
+    }
+
+    public function test_orders_table_has_mark_as_paid_and_update_status_actions(): void
+    {
+        $admin = $this->superAdmin();
+        $this->actingAs($admin);
+
+        $member = Member::factory()->create();
+        $order = Order::factory()->create([
+            'member_id' => $member->id,
+            'status' => 'pending_payment',
+            'payment_method' => 'cash',
+            'handled_by' => null,
+        ]);
+
+        Livewire::test(ListOrders::class)
+            ->callTableAction('mark_as_paid', $order);
+
+        $this->assertSame('paid', $order->fresh()->status);
+        $this->assertSame($admin->id, $order->fresh()->handled_by);
+
+        Livewire::test(ListOrders::class)
+            ->callTableAction('update_status', $order, [
+                'status' => 'completed',
+                'payment_method' => 'qris',
+            ]);
+
+        $this->assertSame('completed', $order->fresh()->status);
+        $this->assertSame('qris', $order->fresh()->payment_method);
+    }
+
+    public function test_orders_table_bulk_actions_work(): void
+    {
+        $admin = $this->superAdmin();
+        $this->actingAs($admin);
+
+        $member = Member::factory()->create();
+        $order1 = Order::factory()->create([
+            'member_id' => $member->id,
+            'status' => 'pending_payment',
+            'delivered_at' => null,
+        ]);
+        $order2 = Order::factory()->create([
+            'member_id' => $member->id,
+            'status' => 'pending_payment',
+            'delivered_at' => null,
+        ]);
+
+        // 1. Bulk mark as paid
+        Livewire::test(ListOrders::class)
+            ->callTableBulkAction('bulk_mark_as_paid', [$order1, $order2]);
+
+        $this->assertSame('paid', $order1->fresh()->status);
+        $this->assertSame('paid', $order2->fresh()->status);
+
+        // 2. Bulk deliver
+        Livewire::test(ListOrders::class)
+            ->callTableBulkAction('bulk_deliver', [$order1, $order2]);
+
+        $this->assertNotNull($order1->fresh()->delivered_at);
+        $this->assertNotNull($order2->fresh()->delivered_at);
+
+        // 3. Bulk complete
+        Livewire::test(ListOrders::class)
+            ->callTableBulkAction('bulk_complete', [$order1, $order2]);
+
+        $this->assertSame('completed', $order1->fresh()->status);
+        $this->assertSame('completed', $order2->fresh()->status);
+
+        // 4. Bulk cancel with stock restoration
+        $product = Product::factory()->create(['stock' => 5]);
+        $order3 = Order::factory()->create([
+            'member_id' => $member->id,
+            'status' => 'pending_payment',
+        ]);
+        OrderItem::query()->create([
+            'order_id' => $order3->id,
+            'product_id' => $product->id,
+            'quantity' => 2,
+            'unit_price' => 10000,
+            'unit_cost' => 8000,
+            'subtotal' => 20000,
+            'subtotal_cost' => 16000,
+            'profit_amount' => 4000,
+        ]);
+
+        Livewire::test(ListOrders::class)
+            ->callTableBulkAction('bulk_cancel', [$order3]);
+
+        $this->assertSame('cancelled', $order3->fresh()->status);
+        $this->assertSame(7, $product->fresh()->stock);
+
+        // 5. Bulk update status
+        $order4 = Order::factory()->create([
+            'member_id' => $member->id,
+            'status' => 'pending_payment',
+        ]);
+
+        Livewire::test(ListOrders::class)
+            ->callTableBulkAction('bulk_update_status', [$order4], [
+                'status' => 'paid',
+                'payment_method' => 'bank_transfer',
+            ]);
+
+        $this->assertSame('paid', $order4->fresh()->status);
+        $this->assertSame('bank_transfer', $order4->fresh()->payment_method);
+    }
+
+    public function test_location_operations_manages_today_incomplete_orders(): void
+    {
+        $admin = $this->adminWithSeededRole('Admin di lokasi');
+        $this->actingAs($admin);
+
+        $member = Member::factory()->create();
+        $product = Product::factory()->create(['stock' => 10]);
+
+        $order1 = Order::factory()->create([
+            'member_id' => $member->id,
+            'status' => 'pending_payment',
+            'created_at' => now(),
+            'handled_date' => today(),
+            'delivered_at' => null,
+            'total_price' => 25000,
+        ]);
+        OrderItem::query()->create([
+            'order_id' => $order1->id,
+            'product_id' => $product->id,
+            'quantity' => 2,
+            'unit_price' => 12500,
+            'unit_cost' => 10000,
+            'subtotal' => 25000,
+            'subtotal_cost' => 20000,
+            'profit_amount' => 5000,
+        ]);
+
+        $order2 = Order::factory()->create([
+            'member_id' => $member->id,
+            'status' => 'paid',
+            'created_at' => now(),
+            'handled_date' => today(),
+            'delivered_at' => null,
+            'total_price' => 50000,
+        ]);
+
+        // Test render and actions
+        $test = Livewire::test(LocationOperations::class);
+        $test->assertSee('Manajemen Pesanan Hari Ini (Belum Selesai)')
+            ->assertSee('#' . $order1->id)
+            ->assertSee('#' . $order2->id);
+
+        // 1. Mark as paid
+        $test->call('markOrderAsPaid', $order1->id);
+        $this->assertSame('paid', $order1->fresh()->status);
+
+        // 2. Deliver
+        $test->call('deliverOrder', $order2->id);
+        $this->assertNotNull($order2->fresh()->delivered_at);
+
+        // 3. Complete
+        $test->call('completeOrder', $order1->id);
+        $this->assertSame('completed', $order1->fresh()->status);
+        $this->assertNotNull($order1->fresh()->delivered_at);
+
+        // 4. Cancel
+        $order3 = Order::factory()->create([
+            'member_id' => $member->id,
+            'status' => 'pending_payment',
+            'created_at' => now(),
+            'handled_date' => today(),
+        ]);
+        OrderItem::query()->create([
+            'order_id' => $order3->id,
+            'product_id' => $product->id,
+            'quantity' => 3,
+            'unit_price' => 10000,
+            'unit_cost' => 8000,
+            'subtotal' => 30000,
+            'subtotal_cost' => 24000,
+            'profit_amount' => 6000,
+        ]);
+
+        $currentStock = $product->fresh()->stock;
+        $test->call('cancelOrder', $order3->id);
+        $this->assertSame('cancelled', $order3->fresh()->status);
+        $this->assertSame($currentStock + 3, $product->fresh()->stock);
+
+        // 5. Filter tests
+        $test->set('todayOrdersFilter', 'completed');
+        $this->assertTrue($test->instance()->getTodayOrders()->contains('id', $order1->id));
+        $this->assertFalse($test->instance()->getTodayOrders()->contains('id', $order3->id));
     }
 
     private function superAdmin(): User

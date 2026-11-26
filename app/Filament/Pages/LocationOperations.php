@@ -5,21 +5,25 @@ declare(strict_types=1);
 namespace App\Filament\Pages;
 
 use App\Actions\Attendance\CheckInMemberAction;
+use App\Actions\Orders\CancelOrderAction;
 use App\Actions\Orders\CheckoutOrderAction;
 use App\DTO\CheckoutData;
 use App\Models\Member;
 use App\Models\MembershipPackage;
 use App\Models\MembershipPurchase;
 use App\Models\ClassBooking;
+use App\Models\Order;
 use App\Models\PersonalTrainerSession;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\Notifications\MemberNotificationService;
 use App\Support\AdminShift;
 use BackedEnum;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -67,6 +71,10 @@ class LocationOperations extends Page
     public array $orderItems = [];
 
     public string $orderPaymentMethod = 'cash';
+
+    public string $todayOrdersFilter = 'incomplete';
+
+    public string $todayOrdersSearch = '';
 
     public ?int $checkInMemberId = null;
 
@@ -547,5 +555,230 @@ class LocationOperations extends Page
     private function nextMemberCode(): string
     {
         return Member::nextMemberCode();
+    }
+
+    /**
+     * @return Collection<int, Order>
+     */
+    public function getTodayOrders(): Collection
+    {
+        $today = today()->toDateString();
+
+        $query = Order::query()
+            ->with(['member.user', 'items.product', 'handler', 'deliveredBy'])
+            ->where(function ($q) use ($today): void {
+                $q->whereDate('created_at', $today)
+                    ->orWhereDate('handled_date', $today);
+            });
+
+        if ($this->todayOrdersFilter === 'incomplete') {
+            $query->where('status', '!=', 'cancelled')
+                ->where(function ($q): void {
+                    $q->where('status', '!=', 'completed')
+                        ->orWhereNull('delivered_at');
+                });
+        } elseif ($this->todayOrdersFilter === 'pending_payment') {
+            $query->where('status', 'pending_payment');
+        } elseif ($this->todayOrdersFilter === 'ready_to_deliver') {
+            $query->whereIn('status', ['paid', 'completed'])
+                ->whereNull('delivered_at');
+        } elseif ($this->todayOrdersFilter === 'completed') {
+            $query->where('status', 'completed')
+                ->whereNotNull('delivered_at');
+        }
+
+        if (trim($this->todayOrdersSearch) !== '') {
+            $search = trim($this->todayOrdersSearch);
+            $query->where(function ($q) use ($search): void {
+                if (is_numeric($search)) {
+                    $q->where('id', (int) $search);
+                }
+                $q->orWhereHas('member', function ($mq) use ($search): void {
+                    $mq->where('member_code', 'like', "%{$search}%")
+                        ->orWhereHas('user', function ($uq) use ($search): void {
+                            $uq->where('name', 'like', "%{$search}%")
+                                ->orWhere('phone', 'like', "%{$search}%");
+                        });
+                });
+            });
+        }
+
+        return $query->latest('id')->get();
+    }
+
+    /**
+     * @return array{total_incomplete: int, pending_payment: int, ready_to_deliver: int, completed: int}
+     */
+    public function getTodayOrdersStatsProperty(): array
+    {
+        $today = today()->toDateString();
+
+        $base = Order::query()
+            ->where(function ($q) use ($today): void {
+                $q->whereDate('created_at', $today)
+                    ->orWhereDate('handled_date', $today);
+            });
+
+        $pendingPayment = (clone $base)->where('status', 'pending_payment')->count();
+        $readyToDeliver = (clone $base)->whereIn('status', ['paid', 'completed'])->whereNull('delivered_at')->count();
+        $completed = (clone $base)->where('status', 'completed')->whereNotNull('delivered_at')->count();
+        $totalIncomplete = (clone $base)->where('status', '!=', 'cancelled')
+            ->where(function ($q): void {
+                $q->where('status', '!=', 'completed')
+                    ->orWhereNull('delivered_at');
+            })->count();
+
+        return [
+            'total_incomplete' => $totalIncomplete,
+            'pending_payment' => $pendingPayment,
+            'ready_to_deliver' => $readyToDeliver,
+            'completed' => $completed,
+        ];
+    }
+
+    public function setTodayOrdersFilter(string $filter): void
+    {
+        $this->todayOrdersFilter = $filter;
+    }
+
+    public function markOrderAsPaid(int $orderId): void
+    {
+        try {
+            $order = Order::query()->with('member.user')->findOrFail($orderId);
+
+            if ($order->status === 'cancelled') {
+                Notification::make()
+                    ->title('Pesanan sudah dibatalkan')
+                    ->body('Pesanan yang dibatalkan tidak bisa ditandai lunas.')
+                    ->danger()
+                    ->send();
+
+                return;
+            }
+
+            $updateData = ['status' => 'paid'];
+            if ($order->handled_by === null) {
+                $updateData = array_merge($updateData, AdminShift::stamp(auth()->user()));
+            }
+
+            $order->update($updateData);
+
+            if ($order->member?->user) {
+                app(MemberNotificationService::class)->send(
+                    $order->member->user,
+                    'Pesanan sudah dibayar',
+                    'Pesanan produk Anda sudah tercatat lunas di Akhwat Gym.',
+                    'order_paid',
+                    '/orders/'.$order->id,
+                );
+            }
+
+            Notification::make()
+                ->title('Pembayaran Diterima')
+                ->body("Pesanan #{$order->id} berhasil ditandai sudah dibayar.")
+                ->success()
+                ->send();
+        } catch (Throwable $e) {
+            Notification::make()
+                ->title('Gagal Mengubah Status')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function deliverOrder(int $orderId): void
+    {
+        try {
+            $order = Order::query()->findOrFail($orderId);
+
+            if ($order->status === 'cancelled') {
+                Notification::make()
+                    ->title('Pesanan sudah dibatalkan')
+                    ->danger()
+                    ->send();
+
+                return;
+            }
+
+            $order->update([
+                'delivered_at' => now(),
+                'delivered_by' => auth()->id(),
+            ]);
+
+            Notification::make()
+                ->title('Produk Diserahkan')
+                ->body("Pesanan #{$order->id} berhasil dicatat sudah diserahkan ke member.")
+                ->success()
+                ->send();
+        } catch (Throwable $e) {
+            Notification::make()
+                ->title('Gagal Menyerahkan Pesanan')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function completeOrder(int $orderId): void
+    {
+        try {
+            $order = Order::query()->findOrFail($orderId);
+
+            if ($order->status === 'cancelled') {
+                Notification::make()
+                    ->title('Pesanan sudah dibatalkan')
+                    ->danger()
+                    ->send();
+
+                return;
+            }
+
+            $updateData = ['status' => 'completed'];
+            if ($order->delivered_at === null) {
+                $updateData['delivered_at'] = now();
+                $updateData['delivered_by'] = auth()->id();
+            }
+
+            $order->update($updateData);
+
+            Notification::make()
+                ->title('Pesanan Selesai')
+                ->body("Pesanan #{$order->id} berhasil diselesaikan.")
+                ->success()
+                ->send();
+        } catch (Throwable $e) {
+            Notification::make()
+                ->title('Gagal Menyelesaikan Pesanan')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function cancelOrder(int $orderId): void
+    {
+        try {
+            $order = Order::query()->findOrFail($orderId);
+            app(CancelOrderAction::class)->execute($order);
+
+            Notification::make()
+                ->title('Pesanan Dibatalkan')
+                ->body("Pesanan #{$order->id} dibatalkan dan stok produk telah dikembalikan.")
+                ->success()
+                ->send();
+        } catch (ValidationException $exception) {
+            Notification::make()
+                ->title('Gagal Membatalkan')
+                ->body(collect($exception->errors())->flatten()->first() ?? 'Pesanan tidak bisa dibatalkan.')
+                ->danger()
+                ->send();
+        } catch (Throwable $e) {
+            Notification::make()
+                ->title('Gagal Membatalkan Pesanan')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
     }
 }
