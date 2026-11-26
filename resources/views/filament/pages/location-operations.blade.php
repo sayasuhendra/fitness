@@ -201,6 +201,184 @@
                 grid-template-columns: minmax(0, 1fr) 5rem 8rem 8rem auto;
                 align-items: center;
             }
+
+            .location-operations-orders-toolbar {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .location-operations-orders-search {
+                width: 18rem;
+            }
+        }
+
+        .location-operations-orders-toolbar {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgb(229 231 235);
+        }
+
+        .location-operations-orders-filters {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .location-operations-orders-search {
+            width: 100%;
+        }
+
+        .location-operations-table-wrap {
+            overflow-x: auto;
+            border: 1px solid rgb(229 231 235);
+            border-radius: 0.75rem;
+            background-color: #ffffff;
+        }
+
+        .location-operations-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        .location-operations-table thead {
+            background-color: rgb(249 250 251);
+        }
+
+        .location-operations-table th,
+        .location-operations-table td {
+            padding: 0.75rem 1rem;
+            border-top: 1px solid rgb(229 231 235);
+            vertical-align: middle;
+        }
+
+        .location-operations-table th {
+            border-top: 0;
+            color: rgb(55 65 81);
+            font-weight: 700;
+            text-align: left;
+            white-space: nowrap;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .location-operations-table td {
+            color: rgb(31 41 55);
+        }
+
+        .location-operations-table tbody tr:hover {
+            background-color: rgb(249 250 251 / 0.8);
+        }
+
+        .location-operations-table .text-right {
+            text-align: right;
+        }
+
+        .location-operations-member-name {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: rgb(17 24 39);
+        }
+
+        .location-operations-member-time {
+            font-size: 0.75rem;
+            color: rgb(107 114 128);
+            margin-top: 0.125rem;
+        }
+
+        .location-operations-order-item-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .location-operations-order-item-row {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.8125rem;
+            color: rgb(31 41 55);
+        }
+
+        .location-operations-order-item-qty {
+            color: rgb(107 114 128);
+            font-size: 0.8125rem;
+        }
+
+        .location-operations-order-price {
+            font-weight: 700;
+            color: rgb(17 24 39);
+        }
+
+        .location-operations-order-method {
+            margin-top: 0.25rem;
+        }
+
+        .location-operations-order-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .dark .location-operations-orders-toolbar {
+            border-bottom-color: rgb(55 65 81);
+        }
+
+        .dark .location-operations-table-wrap {
+            border-color: rgb(55 65 81);
+            background-color: rgb(17 24 39);
+        }
+
+        .dark .location-operations-table thead {
+            background-color: rgb(31 41 55);
+        }
+
+        .dark .location-operations-table th,
+        .dark .location-operations-table td {
+            border-color: rgb(55 65 81);
+        }
+
+        .dark .location-operations-table th {
+            color: rgb(229 231 235);
+        }
+
+        .dark .location-operations-table td {
+            color: rgb(209 213 219);
+        }
+
+        .dark .location-operations-table tbody tr:hover {
+            background-color: rgb(31 41 55 / 0.5);
+        }
+
+        .dark .location-operations-member-name {
+            color: #ffffff;
+        }
+
+        .dark .location-operations-member-time {
+            color: rgb(156 163 175);
+        }
+
+        .dark .location-operations-order-item-row {
+            color: rgb(229 231 235);
+        }
+
+        .dark .location-operations-order-item-qty {
+            color: rgb(156 163 175);
+        }
+
+        .dark .location-operations-order-price {
+            color: #ffffff;
         }
 
         @media (min-width: 1280px) {
@@ -602,9 +780,9 @@
             @endphp
 
             <!-- Filter Badges & Search Bar -->
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2 pb-4 border-b border-gray-200 dark:border-gray-800">
+            <div class="location-operations-orders-toolbar">
                 <!-- Filter Pills -->
-                <div class="flex flex-wrap items-center gap-2">
+                <div class="location-operations-orders-filters">
                     <x-filament::button
                         type="button"
                         size="sm"
@@ -665,7 +843,7 @@
                 </div>
 
                 <!-- Search Input -->
-                <div class="w-full md:w-64">
+                <div class="location-operations-orders-search">
                     <x-filament::input.wrapper prefix-icon="heroicon-m-magnifying-glass">
                         <x-filament::input
                             wire:model.live.debounce.300ms="todayOrdersSearch"
@@ -692,45 +870,45 @@
                     </p>
                 </div>
             @else
-                <div class="overflow-x-auto mt-4 rounded-xl border border-gray-200 dark:border-gray-800">
-                    <table class="w-full text-left text-xs divide-y divide-gray-200 dark:divide-gray-800">
-                        <thead class="bg-gray-50 dark:bg-gray-900/60 text-gray-700 dark:text-gray-300 font-semibold uppercase tracking-wider">
+                <div class="location-operations-table-wrap">
+                    <table class="location-operations-table">
+                        <thead>
                             <tr>
-                                <th class="px-4 py-3">Member</th>
-                                <th class="px-4 py-3">Item Produk</th>
-                                <th class="px-4 py-3">Total & Metode</th>
-                                <th class="px-4 py-3">Status Bayar</th>
-                                <th class="px-4 py-3">Penyerahan</th>
-                                <th class="px-4 py-3 text-right">Aksi</th>
+                                <th>Member</th>
+                                <th>Item Produk</th>
+                                <th>Total & Metode</th>
+                                <th>Status Bayar</th>
+                                <th>Penyerahan</th>
+                                <th class="text-right">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 dark:divide-gray-800 bg-white dark:bg-gray-900">
+                        <tbody>
                             @foreach ($todayOrders as $order)
-                                <tr wire:key="today-order-{{ $order->id }}" class="hover:bg-gray-50/70 dark:hover:bg-gray-800/40 transition">
+                                <tr wire:key="today-order-{{ $order->id }}">
                                     <!-- Kolom Member: Cukup Nama dan Jam -->
-                                    <td class="px-4 py-3 align-middle whitespace-nowrap">
-                                        <div class="font-bold text-gray-950 dark:text-white text-sm">
+                                    <td class="whitespace-nowrap">
+                                        <div class="location-operations-member-name">
                                             {{ $order->member?->user?->name ?? 'Member #' . $order->member_id }}
                                         </div>
-                                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                        <div class="location-operations-member-time">
                                             {{ $order->created_at->timezone(config('app.timezone'))->format('H:i') }} WIB
                                         </div>
                                     </td>
-                                    <td class="px-4 py-3 align-middle">
-                                        <ul class="space-y-1">
+                                    <td>
+                                        <ul class="location-operations-order-item-list">
                                             @foreach ($order->items as $item)
-                                                <li class="text-gray-800 dark:text-gray-200">
-                                                    <span class="font-medium">{{ $item->product?->name ?? 'Produk #' . $item->product_id }}</span>
-                                                    <span class="text-gray-500 dark:text-gray-400">&times; {{ $item->quantity }}</span>
+                                                <li class="location-operations-order-item-row">
+                                                    <span style="font-weight: 500;">{{ $item->product?->name ?? 'Produk #' . $item->product_id }}</span>
+                                                    <span class="location-operations-order-item-qty">&times; {{ $item->quantity }}</span>
                                                 </li>
                                             @endforeach
                                         </ul>
                                     </td>
-                                    <td class="px-4 py-3 align-middle whitespace-nowrap">
-                                        <div class="font-bold text-gray-900 dark:text-white">
+                                    <td class="whitespace-nowrap">
+                                        <div class="location-operations-order-price">
                                             Rp {{ number_format((float) $order->total_price, 0, ',', '.') }}
                                         </div>
-                                        <div class="mt-1">
+                                        <div class="location-operations-order-method">
                                             <x-filament::badge size="sm" color="gray">
                                                 {{ match ($order->payment_method) {
                                                     'qris' => 'QRIS',
@@ -742,7 +920,7 @@
                                             </x-filament::badge>
                                         </div>
                                     </td>
-                                    <td class="px-4 py-3 align-middle whitespace-nowrap">
+                                    <td class="whitespace-nowrap">
                                         <x-filament::badge
                                             size="sm"
                                             :color="match ($order->status) {
@@ -760,7 +938,7 @@
                                             } }}
                                         </x-filament::badge>
                                     </td>
-                                    <td class="px-4 py-3 align-middle whitespace-nowrap">
+                                    <td class="whitespace-nowrap">
                                         @if ($order->delivered_at)
                                             <x-filament::badge size="sm" color="success" icon="heroicon-m-check">
                                                 Sudah ({{ $order->delivered_at->timezone(config('app.timezone'))->format('H:i') }})
@@ -771,8 +949,8 @@
                                             </x-filament::badge>
                                         @endif
                                     </td>
-                                    <td class="px-4 py-3 align-middle text-right whitespace-nowrap">
-                                        <div class="flex items-center justify-end gap-1.5">
+                                    <td class="text-right whitespace-nowrap">
+                                        <div class="location-operations-order-actions">
                                             @if ($order->status === 'pending_payment')
                                                 <x-filament::button
                                                     wire:click="markOrderAsPaid({{ $order->id }})"
