@@ -605,67 +605,74 @@
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2 pb-4 border-b border-gray-200 dark:border-gray-800">
                 <!-- Filter Pills -->
                 <div class="flex flex-wrap items-center gap-2">
-                    <button
+                    <x-filament::button
                         type="button"
+                        size="sm"
                         wire:click="setTodayOrdersFilter('incomplete')"
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition {{ $todayOrdersFilter === 'incomplete' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700' }}"
+                        :color="$todayOrdersFilter === 'incomplete' ? 'primary' : 'gray'"
+                        :outlined="$todayOrdersFilter !== 'incomplete'"
+                        :badge="$stats['total_incomplete'] > 0 ? (string) $stats['total_incomplete'] : null"
+                        :badge-color="$todayOrdersFilter === 'incomplete' ? 'white' : 'warning'"
                     >
-                        <span>Belum Selesai</span>
-                        <span class="px-1.5 py-0.5 rounded-full text-[10px] {{ $todayOrdersFilter === 'incomplete' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300' }}">
-                            {{ $stats['total_incomplete'] }}
-                        </span>
-                    </button>
+                        Belum Selesai
+                    </x-filament::button>
 
-                    <button
+                    <x-filament::button
                         type="button"
+                        size="sm"
                         wire:click="setTodayOrdersFilter('pending_payment')"
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition {{ $todayOrdersFilter === 'pending_payment' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700' }}"
+                        :color="$todayOrdersFilter === 'pending_payment' ? 'primary' : 'gray'"
+                        :outlined="$todayOrdersFilter !== 'pending_payment'"
+                        :badge="$stats['pending_payment'] > 0 ? (string) $stats['pending_payment'] : null"
+                        :badge-color="$todayOrdersFilter === 'pending_payment' ? 'white' : 'danger'"
                     >
-                        <span>Menunggu Pembayaran</span>
-                        <span class="px-1.5 py-0.5 rounded-full text-[10px] {{ $todayOrdersFilter === 'pending_payment' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-300' }}">
-                            {{ $stats['pending_payment'] }}
-                        </span>
-                    </button>
+                        Menunggu Bayar
+                    </x-filament::button>
 
-                    <button
+                    <x-filament::button
                         type="button"
+                        size="sm"
                         wire:click="setTodayOrdersFilter('ready_to_deliver')"
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition {{ $todayOrdersFilter === 'ready_to_deliver' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700' }}"
+                        :color="$todayOrdersFilter === 'ready_to_deliver' ? 'primary' : 'gray'"
+                        :outlined="$todayOrdersFilter !== 'ready_to_deliver'"
+                        :badge="$stats['ready_to_deliver'] > 0 ? (string) $stats['ready_to_deliver'] : null"
+                        :badge-color="$todayOrdersFilter === 'ready_to_deliver' ? 'white' : 'info'"
                     >
-                        <span>Siap Diserahkan</span>
-                        <span class="px-1.5 py-0.5 rounded-full text-[10px] {{ $todayOrdersFilter === 'ready_to_deliver' ? 'bg-white/20 text-white' : 'bg-sky-100 text-sky-800 dark:bg-sky-900/60 dark:text-sky-300' }}">
-                            {{ $stats['ready_to_deliver'] }}
-                        </span>
-                    </button>
+                        Siap Diserahkan
+                    </x-filament::button>
 
-                    <button
+                    <x-filament::button
                         type="button"
+                        size="sm"
                         wire:click="setTodayOrdersFilter('completed')"
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition {{ $todayOrdersFilter === 'completed' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700' }}"
+                        :color="$todayOrdersFilter === 'completed' ? 'primary' : 'gray'"
+                        :outlined="$todayOrdersFilter !== 'completed'"
+                        :badge="$stats['completed'] > 0 ? (string) $stats['completed'] : null"
+                        :badge-color="$todayOrdersFilter === 'completed' ? 'white' : 'success'"
                     >
-                        <span>Sudah Selesai</span>
-                        <span class="px-1.5 py-0.5 rounded-full text-[10px] {{ $todayOrdersFilter === 'completed' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300' }}">
-                            {{ $stats['completed'] }}
-                        </span>
-                    </button>
+                        Sudah Selesai
+                    </x-filament::button>
 
-                    <button
+                    <x-filament::button
                         type="button"
+                        size="sm"
                         wire:click="setTodayOrdersFilter('all_today')"
-                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition {{ $todayOrdersFilter === 'all_today' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700' }}"
+                        :color="$todayOrdersFilter === 'all_today' ? 'primary' : 'gray'"
+                        :outlined="$todayOrdersFilter !== 'all_today'"
                     >
                         Semua Hari Ini
-                    </button>
+                    </x-filament::button>
                 </div>
 
                 <!-- Search Input -->
                 <div class="w-full md:w-64">
-                    <input
-                        wire:model.live.debounce.300ms="todayOrdersSearch"
-                        type="text"
-                        placeholder="Cari member / ID..."
-                        class="block w-full text-xs rounded-lg border border-gray-300 px-3 py-1.5 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
-                    />
+                    <x-filament::input.wrapper prefix-icon="heroicon-m-magnifying-glass">
+                        <x-filament::input
+                            wire:model.live.debounce.300ms="todayOrdersSearch"
+                            type="text"
+                            placeholder="Cari nama member..."
+                        />
+                    </x-filament::input.wrapper>
                 </div>
             </div>
 
@@ -687,69 +694,63 @@
             @else
                 <div class="overflow-x-auto mt-4 rounded-xl border border-gray-200 dark:border-gray-800">
                     <table class="w-full text-left text-xs divide-y divide-gray-200 dark:divide-gray-800">
-                        <thead class="bg-gray-50 dark:bg-gray-900/50 text-gray-600 dark:text-gray-400 font-semibold uppercase tracking-wider">
+                        <thead class="bg-gray-50 dark:bg-gray-900/60 text-gray-700 dark:text-gray-300 font-semibold uppercase tracking-wider">
                             <tr>
-                                <th class="px-3 py-3">Member</th>
-                                <th class="px-3 py-3">Item Produk</th>
-                                <th class="px-3 py-3">Total & Metode</th>
-                                <th class="px-3 py-3">Status Bayar</th>
-                                <th class="px-3 py-3">Penyerahan</th>
-                                <th class="px-3 py-3 text-right">Aksi</th>
+                                <th class="px-4 py-3">Member</th>
+                                <th class="px-4 py-3">Item Produk</th>
+                                <th class="px-4 py-3">Total & Metode</th>
+                                <th class="px-4 py-3">Status Bayar</th>
+                                <th class="px-4 py-3">Penyerahan</th>
+                                <th class="px-4 py-3 text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-800 bg-white dark:bg-gray-900">
                             @foreach ($todayOrders as $order)
                                 <tr wire:key="today-order-{{ $order->id }}" class="hover:bg-gray-50/70 dark:hover:bg-gray-800/40 transition">
-                                    <td class="px-3 py-3 align-top">
-                                        <div class="font-semibold text-gray-900 dark:text-white flex items-center gap-1.5 flex-wrap">
-                                            <span>{{ $order->member?->user?->name ?? 'Member #' . $order->member_id }}</span>
-                                            <span class="text-[11px] font-normal text-gray-500 dark:text-gray-400">#{{ $order->id }}</span>
+                                    <!-- Kolom Member: Cukup Nama dan Jam -->
+                                    <td class="px-4 py-3 align-middle whitespace-nowrap">
+                                        <div class="font-bold text-gray-950 dark:text-white text-sm">
+                                            {{ $order->member?->user?->name ?? 'Member #' . $order->member_id }}
                                         </div>
-                                        <div class="text-[11px] text-gray-500 dark:text-gray-400 flex items-center gap-1.5 flex-wrap">
-                                            <span>{{ $order->member?->member_code ?? '-' }}</span>
-                                            <span>&bull;</span>
-                                            <span>{{ $order->created_at->format('H:i') }} WIB</span>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                            {{ $order->created_at->timezone(config('app.timezone'))->format('H:i') }} WIB
                                         </div>
-                                        @if ($order->payment_reference)
-                                            <div class="text-[10px] text-gray-400 font-mono mt-0.5 truncate max-w-[150px]" title="{{ $order->payment_reference }}">
-                                                {{ $order->payment_reference }}
-                                            </div>
-                                        @endif
                                     </td>
-                                    <td class="px-3 py-3 align-top">
+                                    <td class="px-4 py-3 align-middle">
                                         <ul class="space-y-1">
                                             @foreach ($order->items as $item)
                                                 <li class="text-gray-800 dark:text-gray-200">
                                                     <span class="font-medium">{{ $item->product?->name ?? 'Produk #' . $item->product_id }}</span>
                                                     <span class="text-gray-500 dark:text-gray-400">&times; {{ $item->quantity }}</span>
-                                                    <span class="text-[11px] text-gray-400">({{ number_format((float) $item->subtotal, 0, ',', '.') }})</span>
                                                 </li>
                                             @endforeach
                                         </ul>
                                     </td>
-                                    <td class="px-3 py-3 align-top whitespace-nowrap">
+                                    <td class="px-4 py-3 align-middle whitespace-nowrap">
                                         <div class="font-bold text-gray-900 dark:text-white">
                                             Rp {{ number_format((float) $order->total_price, 0, ',', '.') }}
                                         </div>
                                         <div class="mt-1">
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 uppercase">
+                                            <x-filament::badge size="sm" color="gray">
                                                 {{ match ($order->payment_method) {
                                                     'qris' => 'QRIS',
                                                     'bank_transfer' => 'Transfer Bank',
                                                     'cash' => 'Tunai',
                                                     'manual_transfer' => 'Transfer Manual',
-                                                    default => $order->payment_method,
+                                                    default => strtoupper($order->payment_method),
                                                 } }}
-                                            </span>
+                                            </x-filament::badge>
                                         </div>
                                     </td>
-                                    <td class="px-3 py-3 align-top whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold {{ match ($order->status) {
-                                            'paid' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
-                                            'completed' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
-                                            'cancelled' => 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300',
-                                            default => 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300',
-                                        } }}">
+                                    <td class="px-4 py-3 align-middle whitespace-nowrap">
+                                        <x-filament::badge
+                                            size="sm"
+                                            :color="match ($order->status) {
+                                                'paid', 'completed' => 'success',
+                                                'cancelled' => 'danger',
+                                                default => 'warning',
+                                            }"
+                                        >
                                             {{ match ($order->status) {
                                                 'pending_payment' => 'Menunggu Bayar',
                                                 'paid' => 'Sudah Dibayar',
@@ -757,31 +758,26 @@
                                                 'cancelled' => 'Dibatalkan',
                                                 default => $order->status,
                                             } }}
-                                        </span>
+                                        </x-filament::badge>
                                     </td>
-                                    <td class="px-3 py-3 align-top whitespace-nowrap">
+                                    <td class="px-4 py-3 align-middle whitespace-nowrap">
                                         @if ($order->delivered_at)
-                                            <div class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold text-[11px]">
-                                                <x-filament::icon icon="heroicon-m-check-circle" class="h-4 w-4" />
-                                                <span>Sudah ({{ $order->delivered_at->format('H:i') }})</span>
-                                            </div>
-                                            @if ($order->deliveredBy)
-                                                <div class="text-[10px] text-gray-400">oleh {{ $order->deliveredBy->name }}</div>
-                                            @endif
+                                            <x-filament::badge size="sm" color="success" icon="heroicon-m-check">
+                                                Sudah ({{ $order->delivered_at->timezone(config('app.timezone'))->format('H:i') }})
+                                            </x-filament::badge>
                                         @else
-                                            <div class="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold text-[11px]">
-                                                <x-filament::icon icon="heroicon-m-clock" class="h-4 w-4" />
-                                                <span>Belum Diserahkan</span>
-                                            </div>
+                                            <x-filament::badge size="sm" color="warning" icon="heroicon-m-clock">
+                                                Belum Diserahkan
+                                            </x-filament::badge>
                                         @endif
                                     </td>
-                                    <td class="px-3 py-3 align-top text-right whitespace-nowrap">
-                                        <div class="flex items-center justify-end gap-1.5 flex-wrap">
+                                    <td class="px-4 py-3 align-middle text-right whitespace-nowrap">
+                                        <div class="flex items-center justify-end gap-1.5">
                                             @if ($order->status === 'pending_payment')
                                                 <x-filament::button
                                                     wire:click="markOrderAsPaid({{ $order->id }})"
                                                     wire:confirm="Tandai pesanan #{{ $order->id }} sudah dibayar?"
-                                                    size="xs"
+                                                    size="sm"
                                                     color="success"
                                                     icon="heroicon-m-banknotes"
                                                 >
@@ -793,7 +789,7 @@
                                                 <x-filament::button
                                                     wire:click="deliverOrder({{ $order->id }})"
                                                     wire:confirm="Catat produk pesanan #{{ $order->id }} sudah diserahkan ke member?"
-                                                    size="xs"
+                                                    size="sm"
                                                     color="primary"
                                                     icon="heroicon-m-hand-thumb-up"
                                                 >
@@ -804,7 +800,7 @@
                                             @if ($order->status === 'paid')
                                                 <x-filament::button
                                                     wire:click="completeOrder({{ $order->id }})"
-                                                    size="xs"
+                                                    size="sm"
                                                     color="gray"
                                                     icon="heroicon-m-check"
                                                 >
@@ -816,7 +812,7 @@
                                                 <x-filament::button
                                                     wire:click="cancelOrder({{ $order->id }})"
                                                     wire:confirm="Batalkan pesanan #{{ $order->id }}? Stok produk akan dikembalikan."
-                                                    size="xs"
+                                                    size="sm"
                                                     color="danger"
                                                     icon="heroicon-m-x-circle"
                                                 >
@@ -824,14 +820,15 @@
                                                 </x-filament::button>
                                             @endif
 
-                                            <a
-                                                href="{{ \App\Filament\Resources\Orders\OrderResource::getUrl('view', ['record' => $order]) }}"
+                                            <x-filament::icon-button
+                                                :href="\App\Filament\Resources\Orders\OrderResource::getUrl('view', ['record' => $order])"
                                                 target="_blank"
-                                                class="inline-flex items-center justify-center p-1.5 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-                                                title="Lihat Detail Pesanan"
-                                            >
-                                                <x-filament::icon icon="heroicon-m-arrow-top-right-on-square" class="h-4 w-4" />
-                                            </a>
+                                                tag="a"
+                                                color="gray"
+                                                icon="heroicon-m-arrow-top-right-on-square"
+                                                tooltip="Lihat Detail Pesanan"
+                                                size="sm"
+                                            />
                                         </div>
                                     </td>
                                 </tr>

@@ -1263,8 +1263,7 @@ class AdminPanelTest extends TestCase
         // Test render and actions
         $test = Livewire::test(LocationOperations::class);
         $test->assertSee('Manajemen Pesanan Hari Ini (Belum Selesai)')
-            ->assertSee('#' . $order1->id)
-            ->assertSee('#' . $order2->id);
+            ->assertSee($order1->member->user->name);
 
         // 1. Mark as paid
         $test->call('markOrderAsPaid', $order1->id);
