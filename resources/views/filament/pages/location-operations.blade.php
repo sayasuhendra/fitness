@@ -689,7 +689,6 @@
                     <table class="w-full text-left text-xs divide-y divide-gray-200 dark:divide-gray-800">
                         <thead class="bg-gray-50 dark:bg-gray-900/50 text-gray-600 dark:text-gray-400 font-semibold uppercase tracking-wider">
                             <tr>
-                                <th class="px-3 py-3">Pesanan</th>
                                 <th class="px-3 py-3">Member</th>
                                 <th class="px-3 py-3">Item Produk</th>
                                 <th class="px-3 py-3">Total & Metode</th>
@@ -701,22 +700,21 @@
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-800 bg-white dark:bg-gray-900">
                             @foreach ($todayOrders as $order)
                                 <tr wire:key="today-order-{{ $order->id }}" class="hover:bg-gray-50/70 dark:hover:bg-gray-800/40 transition">
-                                    <td class="px-3 py-3 align-top whitespace-nowrap">
-                                        <div class="font-bold text-gray-900 dark:text-white">#{{ $order->id }}</div>
-                                        <div class="text-[11px] text-gray-500 dark:text-gray-400">{{ $order->created_at->format('H:i') }} WIB</div>
+                                    <td class="px-3 py-3 align-top">
+                                        <div class="font-semibold text-gray-900 dark:text-white flex items-center gap-1.5 flex-wrap">
+                                            <span>{{ $order->member?->user?->name ?? 'Member #' . $order->member_id }}</span>
+                                            <span class="text-[11px] font-normal text-gray-500 dark:text-gray-400">#{{ $order->id }}</span>
+                                        </div>
+                                        <div class="text-[11px] text-gray-500 dark:text-gray-400 flex items-center gap-1.5 flex-wrap">
+                                            <span>{{ $order->member?->member_code ?? '-' }}</span>
+                                            <span>&bull;</span>
+                                            <span>{{ $order->created_at->format('H:i') }} WIB</span>
+                                        </div>
                                         @if ($order->payment_reference)
-                                            <div class="text-[10px] text-gray-400 font-mono mt-0.5 truncate max-w-[120px]" title="{{ $order->payment_reference }}">
+                                            <div class="text-[10px] text-gray-400 font-mono mt-0.5 truncate max-w-[150px]" title="{{ $order->payment_reference }}">
                                                 {{ $order->payment_reference }}
                                             </div>
                                         @endif
-                                    </td>
-                                    <td class="px-3 py-3 align-top">
-                                        <div class="font-semibold text-gray-900 dark:text-white">
-                                            {{ $order->member?->user?->name ?? 'Member #' . $order->member_id }}
-                                        </div>
-                                        <div class="text-[11px] text-gray-500 dark:text-gray-400">
-                                            {{ $order->member?->member_code ?? '-' }}
-                                        </div>
                                     </td>
                                     <td class="px-3 py-3 align-top">
                                         <ul class="space-y-1">
